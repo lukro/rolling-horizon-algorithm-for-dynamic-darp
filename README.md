@@ -1,92 +1,147 @@
 # Rolling-Horizon Algorithm for dynamic DARP
 
+This is the C++ implementation of the rolling-horizon algorithm for the dynamic Dial-a-Ride Problem proposed in<br>
+
+Gaul, Klamroth, and Stiglmayr, 2021. Solving the dynamic dial-a-ride problem using a rolling-horizon event-based graph.<br> 
+21st Symposium on Algorithmic Approaches for Transportation Modelling, Optimization, and Systems (ATMOS 2021). Schloss Dagstuhl - Leibniz-Zentrum für Informatik.<br>
+https://doi.org/10.4230/OASICS.ATMOS.2021.8.<br>
+
+For details of the rolling-horizon algorithm and implementation please refer to the above reference. <br>
+Any feedback is welcome, please send an email to gaul@math.uni-wuppertal.de.<br>
+
+ ## Compilation
+
+ Change the location of your Cplex directories in the Makefile first. Compile the project using "make". 
+ 
+
+ ## Test instances 
+
+ As test instances two different file formats are accepted:<br>
+ - First format (this refers to instance_mode = 1): Test instance consists of one file.  <br>
+    <pre>
+    2 32 480 3 30
+    0   0.000   0.000   0   0    0  480
+    1  -1.198  -5.164   3   1    0 1440
+    2   5.573   7.114   3   1    0 1440
+    3  -6.614   0.072   3   1    0 1440
+    4  -7.374  -1.107   3   1    0 1440
+    5  -9.251   8.321   3   1    0 1440
+    6   6.498  -6.036   3   1    0 1440
+    7   0.861   6.903   3   1    0 1440
+    8   3.904  -5.261   3   1    0 1440
+    9   7.976  -9.000   3   1  276  291
+    10  -2.610   0.039   3   1   32   47
+    11   4.487   7.142   3   1  115  130
+    12   8.938  -4.388   3   1   14   29
+    13  -4.172  -9.096   3   1  198  213
+    14   7.835  -9.269   3   1  160  175
+    15   2.792  -7.944   3   1  180  195
+    16   5.212   9.271   3   1  366  381
+    17   6.687   6.731   3  -1  402  417
+    18  -2.192  -9.210   3  -1  322  337
+    19  -1.061   8.752   3  -1  179  194
+    20   6.883   0.882   3  -1  138  153
+    21   5.586  -1.554   3  -1   82   97
+    22  -9.865   1.398   3  -1   49   64
+    23  -9.800   5.697   3  -1  400  415
+    24   1.271   1.018   3  -1  298  313
+    25   4.404  -1.952   3  -1    0 1440
+    26   0.673   6.283   3  -1    0 1440
+    27   7.032   2.808   3  -1    0 1440
+    28  -0.694  -7.098   3  -1    0 1440
+    29   3.763  -7.269   3  -1    0 1440
+    30   6.634  -7.426   3  -1    0 1440
+    31  -9.450   3.792   3  -1    0 1440
+    32  -8.819  -4.749   3  -1    0 1440
+    33   0.000   0.000   0   0    0  48
+    </pre>
+    
+    First line corresponds to: K 2n T Q L_i, where L_i = 30 for all i=1,...,n<br>
+    Column 1: identifies nodes 0,...,2n+1<br>
+    Column 2 and 3: x and y coordinates of the nodes<br>
+    Column 4: service time <br>
+    Column 5: load<br>
+    Column 6 and 7: time window<br>
 
 
-## Getting started
+- Second format (this refers to instance_mode = 2): Test instance consists of two files.<br>
+    1) One file containing the distance matrix (c_{i,j}), named "instance_name_c_a.txt". The file shoud be formatted like this:<br>
+        <pre>
+        c_{0,0}  c_{0,1} ... c{0,2n}
+        c_{1,0}  c_{1,1} ... c{1,2n}
+        .
+        .
+        .
+        c_{2n,0} c_{2n,1} ... c_{2n,2n}
+        </pre>
+    2) The other file, "instance_name.txt", contains everything else. This file should have the following format: <br>
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+        <pre>
+        8 508 840 3 0
+        0 0.0 0 0.0 840.0 840.0
+        1 0.75 1 126.0 151.0 22.33
+        2 0.75 1 216.0 241.0 15.85
+        3 0.75 1 290.0 315.0 18.46
+        4 0.75 1 364.0 389.0 21.03
+        5 0.75 1 381.0 406.0 20.83
+        6 0.75 3 454.0 479.0 18.02
+        7 0.75 1 494.0 519.0 22.49
+        8 0.75 1 534.0 559.0 25.85
+        9 0.75 1 546.0 571.0 16.32
+        10 0.75 1 546.0 571.0 18.02
+        ...
+        500 0.75 -2 564.62 599.62 15.87
+        501 0.75 -1 580.49 615.49 16.74
+        502 0.75 -1 609.09 644.09 16.34
+        503 0.75 -1 718.14 753.14 14.39
+        504 0.75 -1 728.62 763.62 17.87
+        505 0.75 -1 775.54 810.54 14.79
+        506 0.75 -1 812.38 840.0 27.35
+        507 0.75 -1 833.89 840.0 16.14
+        508 0.75 -1 834.62 840.0 15.87
+        509 0 0 0 840 840
+        </pre>
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+        First line corresponds to: K 2n T Q 0<br>
+        Column 1: identifies nodes 0,...,2n+1<br>
+        Column 2: service time<br>
+        Column 3: load<br>
+        Column 4 and 5: time window<br>
+        Column 6: ride time L_i<br>
 
-## Add your files
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
 
-```
-cd existing_repo
-git remote add origin https://git.uni-wuppertal.de/dgaul/rolling-horizon-algorithm-for-dynamic-darp.git
-git branch -M main
-git push -uf origin main
-```
+This repository contains a test instance of the second type in the directory data/WSW. In this instance a vehicle capacity of Q=6 is assumed.
 
-## Integrate with your tools
 
-- [ ] [Set up project integrations](https://git.uni-wuppertal.de/dgaul/rolling-horizon-algorithm-for-dynamic-darp/-/settings/integrations)
+ ## Running an instance
 
-## Collaborate with your team
+There are two binaries <br>
+ ./bin/darp_cplex_3<br>
+ ./bin/darp_cplex_6<br>
+ to choose between normal cabs (Q=3) and ridepooling cabs (Q=6). Usage: <br>
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+ ./bin/darp_cplex_6 instance_name e.g. ./bin/darp_milp_6 no_011_6_req<br>
+ 
 
-## Test and Deploy
+ 
+ 
 
-Use the built-in continuous integration in GitLab.
+ ## Acknowledgement
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+ This work was partially supported by the state of North Rhine-Westphalia (Germany) within the project “bergisch.smart.mobility”.<br>
 
-***
+ 
+ ## Authors
 
-# Editing this README
+ The author of the code is Daniela Gaul (gaul@math.uni-wuppertal.de).
+ It was developed at Bergische Universität Wuppertal with her PhD advisors Kathrin Klamroth and Michael Stiglmayr.
+ 
+ ## License
+ 
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
 
-## Name
-Choose a self-explaining name for your project.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
