@@ -663,7 +663,7 @@ bool DARPSolver::eight_step(DARP& D, DARPRoute& path, int j)
 
 
 
-void DARPSolver::find_min(double*** pointer, int i, std::vector<std::array<int,3>>& path_list)
+void DARPSolver::find_min(double*** pointer, int i, std::vector<std::array<int,3>>& path_list) const
 {
     int min_value = DARPH_INFINITY;
     std::array<int,3> min_index, index;   
@@ -1228,7 +1228,7 @@ void DARPSolver::compute_stats(DARP& D)
 
 
 
-void DARPSolver::detailed_file(DARP& D, std::string instance)
+void DARPSolver::detailed_file(DARP& D, std::string instance) const
 {
     int current_node, next_node;
     double km_gefahren;

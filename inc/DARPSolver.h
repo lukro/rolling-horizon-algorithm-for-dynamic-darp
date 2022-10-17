@@ -55,7 +55,7 @@ public:
 
     DARPSolver(int);
     ~DARPSolver();
-    // no copy constructor or assignment operator needed so far
+    // no copy/ move constructor or assignment/ move operator needed so far
 
     // check pairwise feasibility of paths
     void check_paths(DARP& D);
@@ -68,13 +68,13 @@ public:
     bool eight_step(DARP& D, DARPRoute&, int); // modified != tabu search
     
     // feasible path heuristic
-    void find_min(double***, int, std::vector<std::array<int,3>>&);
+    void find_min(double***, int, std::vector<std::array<int,3>>&) const;
     void choose_paths(int, double);
 
     // Solution display/debugging
     bool verify_routes(DARP& D, bool consider_excess_ride_time, const char*);
     void compute_stats(DARP& D);
-    void detailed_file(DARP& D, std::string instance);
+    void detailed_file(DARP& D, std::string instance) const;
 };
     
 #endif

@@ -35,12 +35,12 @@ private:
     
 public:
     
-    DARP(int); // Constructor for an n-node problem
-    ~DARP(); // Destructor
-    // Copy Constructor and assignment operator not defined, not needed in this project so far (not more than one instance created)
+    DARP(int); // constructor for an n-node problem
+    ~DARP(); 
+    // copy/ move constructor and assignment/ move operator not defined, not needed in this project so far (not more than one instance created)
     
         
-    int get_instance_mode() {return instance_mode;}
+    int get_instance_mode() const {return instance_mode;}
     void set_instance_mode(int i) {instance_mode = i;}
 
     // // file processing

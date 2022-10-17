@@ -43,7 +43,7 @@ private:
 public:
     DARPGraph(int);
     ~DARPGraph();
-    // no copy constructor or assigment operator needed so far since not more than one instance created
+    // no copy/ move constructor or assignment/ move operator needed so far since not more than one instance created
     
     
     // create event-based graph

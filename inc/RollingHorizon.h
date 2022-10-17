@@ -47,7 +47,7 @@ public:
     // Constructor
     RollingHorizon(int);
     ~RollingHorizon();
-    // no copy constructor or assignment operator needed so far
+    // no copy/ move constructor or assignment/ move operator needed so far
 
     // maps - after creating nodes and arcs!
     void create_maps(DARP& D, DARPGraph<S>& G);
