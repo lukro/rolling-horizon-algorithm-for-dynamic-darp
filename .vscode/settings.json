@@ -1,0 +1,12 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/lukas/Dokumente/DARP/rolling-horizon-algorithm-for-dynamic-darp/bin",
+            "binaryPath": "/home/lukas/Dokumente/DARP/rolling-horizon-algorithm-for-dynamic-darp/bin/darp_cplex_6",
+            "binaryArgs": ["no_011_6_req"]
+        }
+    ],
+    "files.associations": {
+        "iomanip": "cpp"
+    }
+}

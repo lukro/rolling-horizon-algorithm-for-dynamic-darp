@@ -9,8 +9,8 @@ CCOPT = -std=c++17 -m64 -O -fPIC -fno-strict-aliasing -fexceptions -DNDEBUG -DIL
 
 
 # replace the following lines with location of your cplex directory
-CPLEXDIR      = PATHTOCPLEX/cplex
-CONCERTDIR    = PATHTOCPLEX/concert
+CPLEXDIR      = /opt/ibm/ILOG/CPLEX_Studio2211/cplex
+CONCERTDIR    = /opt/ibm/ILOG/CPLEX_Studio2211/concert
 
 # Link options and libraries
 CPLEXLIBDIR   = $(CPLEXDIR)/lib/$(SYSTEM)/$(LIBFORMAT)

@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+          "name": "C++ Debug",
+          "type": "cppdbg",
+          "request": "launch",
+          "program": "${workspaceFolder}/bin/darp_cplex_6",
+          "args": [
+              "no_011_6_req"
+          ],
+          "stopAtEntry": false,
+          "cwd": "${workspaceFolder}",
+          "environment": [],
+          "externalConsole": false,
+          "MIMode": "gdb",
+          "setupCommands": [],
+          "preLaunchTask": "C/C++: g++ build active file",
+          "miDebuggerPath": "/usr/bin/gdb"
+        }
+      ]
+}

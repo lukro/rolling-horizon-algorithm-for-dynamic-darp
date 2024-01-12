@@ -119,7 +119,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
     
 
 
-        std::cout << "--------------- MILP " << num_milps << " ---------------" << std::endl;
+        std::cout << "\033[1;37m\033[48;2;22;160;133m--------------- MILP " << num_milps << " ---------------\033[0m" << std::endl;
         std::cout << std::endl << "Time passed [m]: " << time_passed << std::endl;
         sort(D.known_requests.begin(), D.known_requests.end());
         std::cout << "Known requests: ";
@@ -280,7 +280,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
 
                 num_milps++;
 
-                std::cout << "--------------- MILP " << num_milps << " ---------------" << std::endl;
+                std::cout << "\033[1;37m\033[48;2;22;160;133m--------------- MILP " << num_milps << " ---------------\033[0m" << std::endl;
                 std::cout << std::endl << "Time passed [m]: " << time_passed << std::endl;
                 sort(D.known_requests.begin(), D.known_requests.end());
                 std::cout << "Known requests: ";
@@ -2871,6 +2871,8 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
         flag = false;
         for (const auto& a: cycle_arcs)
         {
+
+        
             if (a[0] == G.depot)
             {
                 std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << "Start";
@@ -2898,18 +2900,26 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                 {
                     for (const auto& f: cycle_arcs)
                     {
+                        auto time = B_val[vmap[f[0]]];
                         if (f[0] == b[1])
                         {
                             cycle.push_back(f);
-                            if (f[0][0] > n)
-                            {
-                                std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << "out:";
-                                std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << f[0][0] - n;
+                            if(time > time_passed) {
+                                std::cout << "\033[1;37m\033[48;2;22;160;133m";
+                                if (f[0][0] > n)
+                                    std::cout << std::left << " -" << f[0][0] - n << setfill(' ');
+                                else
+                                    std::cout << std::left << " +" << f[0][0] << setfill(' ');
+                                std::cout << "\033[0;95m\033[48;2;22;160;133m " << time << "\033[0m";
                             }
-                            else
-                            {
-                                std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << "in:";
-                                std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << f[0][0];
+                            else {
+                                std::cout << "\033[0m"; 
+                                if (f[0][0] > n)
+                                    std::cout << std::left << " -" << f[0][0] - n << setfill(' ');
+                                else
+                                    std::cout << std::left << " +" << f[0][0] << setfill(' ');
+                            
+                                std::cout << "\033[0;37m " << time << "\033[0m";
                             }
                             
                             if (f[1] != G.depot)
@@ -2937,12 +2947,8 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                 D.route[route_count].end = current;
                 D.next_array[current] = DARPH_DEPOT;
 
-                std::cout << std::endl;
-                std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << time_passed;
                 for (const auto& a: cycle)
                 {
-                    std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << "Time:";
-                    std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << B_val[vmap[a[0]]];
                     D.nodes[a[0][0]].beginning_service = B_val[vmap[a[0]]];
                 }
                 std::cout << std::endl;
