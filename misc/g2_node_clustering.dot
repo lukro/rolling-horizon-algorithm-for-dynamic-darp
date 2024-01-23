@@ -1,0 +1,59 @@
+digraph G {
+    graph [nodesep="0.01" ranksep="1.5"];
+    edge [color="#08415C"];
+    
+    node[fixedsize=true height=0.5]
+    
+    {
+        node [style=filled fontcolor="white" fillcolor="black" color="black"];
+        "0,0,0";
+    }
+    
+    {
+        rank=min;
+        node [style=filled fontcolor="white" fillcolor="#08415C" color="#08415C"];
+        "0,0,1⁻";
+        "0,0,2⁻";
+    }
+
+    {
+        rank=same;
+        node [style=filled fontcolor="white" fillcolor="#00897b" color="#D6DCE4"];
+        "0,0,1⁺";
+        "0,0,2⁺";
+
+        "0,1,2⁻";
+        "0,1⁻,2";
+
+    }
+
+    {
+        rank=same;
+        node [style=filled fontcolor="#08415C" fillcolor="#f3f3f3" color="#D6DCE4"];
+        "0,1,2⁺";
+        "0,1⁺,2";
+    }
+
+
+    "0,0,0" -> "0,0,1⁺";
+    "0,0,0" -> "0,0,2⁺";
+    "0,0,1⁺" -> "0,0,1⁻";
+    "0,0,2⁺" -> "0,0,2⁻";
+
+    "0,0,1⁻" -> "0,0,0";
+    "0,0,1⁻" -> "0,0,2⁺";
+    "0,0,2⁻" -> "0,0,0";
+    "0,0,2⁻" -> "0,0,1⁺";
+
+    "0,0,1⁺" -> "0,1,2⁺";
+    "0,0,2⁺" -> "0,1⁺,2";
+
+    "0,1⁺,2" -> "0,1,2⁻";
+    "0,1⁺,2" -> "0,1⁻,2";
+    "0,1,2⁺" -> "0,1,2⁻";
+    "0,1,2⁺" -> "0,1⁻,2";
+
+    "0,1⁻,2" -> "0,0,2⁻";
+    "0,1,2⁻" -> "0,0,1⁻";
+
+}

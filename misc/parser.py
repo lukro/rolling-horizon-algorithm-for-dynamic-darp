@@ -1,30 +1,39 @@
-def reorder_sequence(seq):
-    # Split the sequence into parts and remove spaces
-    parts = [part.strip() for part in seq.split(',')]
-    # Sort based on the numeric value
-    sorted_parts = sorted(parts, key=lambda x: int(''.join(filter(str.isdigit, x))))
-    return ','.join(sorted_parts)
+def count_passengers(node):
+    # Count the number of passengers, ignoring whether they are entering or leaving
+    return sum(1 for part in node.split(',') if part.strip() not in ['0', ''])
 
 def process_dot_code(dot_code):
-    processed_lines = []
+    clusters = {}  # Dictionary to hold nodes for each cluster
+    edges = []  # List to hold edges
+
     for line in dot_code.split('\n'):
-        # Check if the line contains a node or edge definition
-        if "->" in line or '"' in line:
-            # Extract the label(s), remove spaces, and reorder them
-            line.strip()
-            parts = line.split('"')
-            for i, part in enumerate(parts):
-                if ',' in part:
-                    parts[i] = reorder_sequence(part)
-            processed_line = '"'.join(parts)
-            processed_lines.append(processed_line)
-        else:
-            processed_lines.append(line)
+        line = line.strip()
+        if '->' in line:  # It's an edge
+            edges.append(line)
+        elif '"' in line:  # It's a node
+            node = line.strip('"')
+            num_passengers = count_passengers(node)
+            clusters.setdefault(num_passengers, []).append(node)
+
+    # Construct the final DOT code with reordered clusters
+    processed_lines = ['digraph G {']
+    for num_passengers in sorted(clusters.keys()):
+        processed_lines.append(f'    subgraph cluster_{num_passengers} {{')
+        processed_lines.append('        peripheries=0;')
+        for node in clusters[num_passengers]:
+            processed_lines.append(f'        "{node}";')
+        processed_lines.append('    }')
+    # Add edges
+    for edge in edges:
+        processed_lines.append(f'    {edge}')
+    processed_lines.append('}')
+
     return '\n'.join(processed_lines)
 
 # Example usage
 dot_code = '''
-digraph G {
+
+ddigraph G {
     edge [color="#08415C"];
     subgraph cluster_0 {
         peripheries=0;
@@ -154,5 +163,7 @@ digraph G {
     }
 }
 '''
+
+
 sorted_dot_code = process_dot_code(dot_code)
 print(sorted_dot_code)
