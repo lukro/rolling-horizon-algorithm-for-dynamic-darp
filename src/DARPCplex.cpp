@@ -55,12 +55,12 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
     // if yes, compute next new request and time until it is revealed
     if (dynamic)
     {
-        std::cout << "Using pick-up delay limit of " << pickup_delay_param << " minutes.\n";
+        // std::cout << "Using pick-up delay limit of " << pickup_delay_param << " minutes.\n";
 
         time_passed = 0;
         std::cout << "time passed: " << time_passed << std::endl;
-        std::cout << "notify_requests_sec: " << notify_requests_sec << std::endl;
-        std::cout << "notify_requests_min: " << notify_requests_min << std::endl;
+        // std::cout << "notify_requests_sec: " << notify_requests_sec << std::endl;
+        // std::cout << "notify_requests_min: " << notify_requests_min << std::endl;
 
         next_r = D.last_static + 1;
         tunnr = DARPH_INFINITY;
@@ -118,8 +118,8 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
         tusnr = tusnr - (tunnr + time_passed);
     
 
-
-        std::cout << "\033[1;37m\033[48;2;22;160;133m--------------- MILP " << num_milps << " ---------------\033[0m" << std::endl;
+        std::cout << WHITE_MANJ_GREEN_BG << "----------------------------------------- MILP " << num_milps << " -----------------------------------------" << FORMAT_STOP << std::endl;
+#if VERBOSE 
         std::cout << std::endl << "Time passed [m]: " << time_passed << std::endl;
         sort(D.known_requests.begin(), D.known_requests.end());
         std::cout << "Known requests: ";
@@ -141,6 +141,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
         else
             std::cout << "No new requests.\n";
         std::cout << std::endl << std::endl; 
+#endif
     }
 
 
@@ -168,6 +169,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
         {
             phi = phi - dur_model.count();
             cplex.setParam(IloCplex::Param::TimeLimit, phi);
+            //cplex.setParam(IloCplex::Param::Threads, 8);
         }
         else
             cplex.setParam(IloCplex::Param::TimeLimit, 7200);
@@ -180,7 +182,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
         if (solved)
         {
             // If CPLEX successfully solved the model, print the results
-            get_solution_values(consider_excess_ride_time, D, G, cplex, B_val, d_val, p_val, x_val, B, x, p, d);
+            get_solution_values(consider_excess_ride_time, D, G, cplex, B_val, d_val, p_val, x_val, B, x, p, d, fixed_B);
         
             while (dynamic && solved && D.num_known_requests < n)
             {   
@@ -188,23 +190,24 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
                 const auto before = clock::now();
                 // when next new request arrives we can fix routes only for min(notify_requests_min,tusnr) minutes, i.e. until time_passed + tunnr + min(notify_requests_min,tusnr)
                 // without tusnr: fix routes until time_passed + tunnr + notify_requests_min (oder weniger z.B. 0.15)
-                std::cout << "time_passed " << time_passed << std::endl;
-                std::cout << "tunnr " << tunnr << std::endl;
-                std::cout << "tusnr " << tusnr << std::endl; 
+                // std::cout << "time_passed " << time_passed << std::endl;
+                // std::cout << "tunnr " << tunnr << std::endl;
+                // std::cout << "tusnr " << tusnr << std::endl; 
                 time_passed += tunnr + min(notify_requests_min, tusnr); // +notify_requests_min wegen 30s bis answer an new request
-                std::cout << "time_passed " << time_passed << std::endl;
+                // std::cout << "time_passed " << time_passed << std::endl;
                 phi = DARPH_MIN(notify_requests_sec, tusnr * 60);
-                if (phi < notify_requests_sec)
-                {
-                    printf("Time for optimization < %d. New time: %f", notify_requests_sec, tusnr * 60);
-                    if (phi < 3)
-                    {
-                        printf("WARNING: Time for optimimation < 3 seconds!");
-                    }
-                }
+                // if (phi < notify_requests_sec)
+                // {
+                //     printf("Time for optimization < %d. New time: %f", notify_requests_sec, tusnr * 60);
+                //     if (phi < 3)
+                //     {
+                //         printf("WARNING: Time for optimimation < 3 seconds!");
+                //     }
+                // }
                 
                 modify_obj = 0;
-                
+
+                //Realitätsabgleich
                 query_solution(D, G, B_val, p_val, x_val, w);
                 const auto after_query_solution = clock::now();
                 update_request_sets();
@@ -213,9 +216,9 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
                 const auto after_erase_dropped_off = clock::now();
                 erase_denied(consider_excess_ride_time, D, G, env, model, B_val, B, x, p, d, accept, serve_accepted, excess_ride_time, fixed_B, fixed_x);
                 const auto after_erase_denied = clock::now();
-                erase_picked_up(G, env, model, B_val, B, x, p, accept, serve_accepted, fixed_B, fixed_x);
+                erase_picked_up(D, G, env, model, B_val, B, x, p, accept, serve_accepted, fixed_B, fixed_x);
                 const auto after_erase_picked_up = clock::now();
-                
+
                 new_requests = next_new_requests; // this can be done only AFTER sorting the requests into groups
                 next_new_requests.clear();
 
@@ -280,7 +283,9 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
 
                 num_milps++;
 
-                std::cout << "\033[1;37m\033[48;2;22;160;133m--------------- MILP " << num_milps << " ---------------\033[0m" << std::endl;
+
+                std::cout << WHITE_MANJ_GREEN_BG << "----------------------------------------- MILP " << num_milps << " -----------------------------------------" << FORMAT_STOP << std::endl;
+#if VERBOSE
                 std::cout << std::endl << "Time passed [m]: " << time_passed << std::endl;
                 sort(D.known_requests.begin(), D.known_requests.end());
                 std::cout << "Known requests: ";
@@ -345,12 +350,12 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
                 else
                     std::cout << "No new requests.\n";
                 std::cout << std::endl << std::endl; 
+#endif
 
                 //name << "MILP/MILP" << num_milps << ".lp";
                 //cplex.exportModel(name.str().c_str());
                 //name.str("");
                 dur_model = clock::now() - before;
-
                 if (dur_model.count() > 15)
                 {
                     std::cout << "Duration model > 15.\n";
@@ -379,7 +384,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
                 if (solved)
                 {
                     update_graph_sets(consider_excess_ride_time, G, B_val, d_val, p_val, x_val);
-                    get_solution_values(consider_excess_ride_time, D, G, cplex, B_val, d_val, p_val, x_val, B, x, p, d);
+                    get_solution_values(consider_excess_ride_time, D, G, cplex, B_val, d_val, p_val, x_val, B, x, p, d, fixed_B);
                 }
                 else
                 {
@@ -441,7 +446,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
 #endif
             
             total_routing_costs = cplex.getValue(obj1);
-            std::cout << "Total routing costs: " << total_routing_costs << std::endl; 
+            std::cout << MANJ_GREEN << "Total routing costs:" << FORMAT_STOP << total_routing_costs << std::endl; 
 #if VERBOSE
             std::cout << "Average routing costs: " << roundf(total_routing_costs / (n - all_denied.size()) * 100) / 100 << std::endl; 
 #endif
@@ -452,7 +457,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
                 if (w[2] > DARPH_EPSILON)
                 {
                     total_excess_ride_time = cplex.getValue(obj3);
-                    std::cout << "Total excess ride time: " << total_excess_ride_time << std::endl; 
+                    std::cout << MANJ_GREEN << "Total excess ride time:" << FORMAT_STOP << total_excess_ride_time << std::endl; 
 #if VERBOSE
                     std::cout << "Average excess ride time: " << roundf(total_excess_ride_time / (n - all_denied.size()) * 100) / 100 << std::endl; 
 #endif
@@ -467,7 +472,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
                             total_excess_ride_time += D.nodes[n+i].beginning_service - D.nodes[n+i].start_tw;
                         }
                     }
-                    std::cout << "Total excess ride time: " << total_excess_ride_time << std::endl; 
+                    std::cout << MANJ_GREEN << "Total excess ride time:" << FORMAT_STOP << total_excess_ride_time << std::endl; 
 #if VERBOSE
                     std::cout << "Average excess ride time: " << roundf(total_excess_ride_time / (n - all_denied.size()) * 100) / 100 << std::endl; 
 #endif
@@ -481,7 +486,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
                 answered_requests = n - cplex.getValue(obj2);
             }
 
-            std::cout << "Number denied requests: " << n - answered_requests << std::endl;
+            std::cout << MANJ_GREEN << "Number denied requests:" << FORMAT_STOP << n - answered_requests << std::endl;
 #if VERBOSE
             std::cout << "Percentage denied requests: " << roundf(double(all_denied.size())/ n * 1000) / 1000 << std::endl;   
             std::cout << "Percentage denied requests due to timeout: " << roundf(denied_timeout / double(all_denied.size()) * 100) / 100 << std::endl;    
@@ -1265,7 +1270,19 @@ void RollingHorizon<Q>::erase_dropped_off(bool consider_excess_ride_time, DARP& 
                     name << "fixed_B_(" << v[0] << "," << v[1] << "," << v[2] << ")";
                 else
                     name << "fixed_B_(" << v[0] << "," << v[1] << "," <<  v[2] << "," << v[3] << "," << v[4] << "," << v[5] << ")";
-                fixed_B[vmap[v]] = IloRange(env, B_val[vmap[v]] - epsilon, B[vmap[v]], B_val[vmap[v]] + epsilon, name.str().c_str());
+                
+
+                //add artificial delay to event time that measures 5% of the ride time
+                //B_val[vmap[v]] += 0.01 * D.nodes[v[0]].ride_time;
+               
+                double delay = 0.01 * D.nodes[v[0]].ride_time;
+                delay = 0.0;
+                fixed_B[vmap[v]] = IloRange(env, 
+                                        B_val[vmap[v]] - epsilon + delay,
+                                        B[vmap[v]],
+                                        B_val[vmap[v]] + epsilon + delay,
+                                        name.str().c_str());
+
                 model.add(fixed_B[vmap[v]]);
                 name.str(""); 
 
@@ -1337,7 +1354,14 @@ void RollingHorizon<Q>::erase_dropped_off(bool consider_excess_ride_time, DARP& 
                     name << "fixed_B_(" << v[0] << "," << v[1] << "," << v[2] << ")";
                 else
                     name << "fixed_B_(" << v[0] << "," << v[1] << "," <<  v[2] << "," << v[3] << "," << v[4] << "," << v[5] << ")";
-                fixed_B[vmap[v]] = IloRange(env, B_val[vmap[v]] - epsilon, B[vmap[v]], B_val[vmap[v]] + epsilon, name.str().c_str());
+                double delay = 0.01 * D.nodes[v[0]].ride_time;
+                delay = 0.0;
+                fixed_B[vmap[v]] = IloRange(env, 
+                                        B_val[vmap[v]] - epsilon + delay,
+                                        B[vmap[v]],
+                                        B_val[vmap[v]] + epsilon + delay,
+                                        name.str().c_str());
+
                 model.add(fixed_B[vmap[v]]);
                 name.str(""); 
                 
@@ -1424,7 +1448,15 @@ void RollingHorizon<Q>::erase_dropped_off(bool consider_excess_ride_time, DARP& 
                             name << "fixed_B_(" << (*itr)[0] << "," << (*itr)[1] << "," << (*itr)[2] << ")";
                         else
                             name << "fixed_B_(" << (*itr)[0] << "," << (*itr)[1] << "," <<  (*itr)[2] << "," << (*itr)[3] << "," << (*itr)[4] << "," << (*itr)[5] << ")";
-                        fixed_B[vmap[*itr]] = IloRange(env, B_val[vmap[*itr]] - epsilon, B[vmap[*itr]], B_val[vmap[*itr]] + epsilon, name.str().c_str());
+                       
+                        //double delay = 0.01 * D.nodes[(*itr)[0]].ride_time;
+                        double delay = 0.0; 
+                        fixed_B[vmap[*itr]] = IloRange(env, 
+                                                B_val[vmap[*itr]] - epsilon + delay, 
+                                                B[vmap[*itr]], 
+                                                B_val[vmap[*itr]] + epsilon + delay,
+                                                name.str().c_str());
+                                            
                         model.add(fixed_B[vmap[*itr]]);
                         name.str(""); 
                         G.V_i[(*itr)[0]].erase(std::remove(G.V_i[(*itr)[0]].begin(), G.V_i[(*itr)[0]].end(), *itr), G.V_i[(*itr)[0]].end());
@@ -1491,7 +1523,14 @@ void RollingHorizon<Q>::erase_dropped_off(bool consider_excess_ride_time, DARP& 
                             name << "fixed_B_(" << (*itr)[0] << "," << (*itr)[1] << "," << (*itr)[2] << ")";
                         else
                             name << "fixed_B_(" << (*itr)[0] << "," << (*itr)[1] << "," <<  (*itr)[2] << "," << (*itr)[3] << "," << (*itr)[4] << "," << (*itr)[5] << ")";
-                        fixed_B[vmap[*itr]] = IloRange(env, B_val[vmap[*itr]] - epsilon, B[vmap[*itr]], B_val[vmap[*itr]] + epsilon, name.str().c_str());
+                        //double delay = 0.01 * D.nodes[(*itr)[0]].ride_time;
+                        double delay = 0.00; 
+                        fixed_B[vmap[*itr]] = IloRange(env, 
+                                                B_val[vmap[*itr]] - epsilon + delay, 
+                                                B[vmap[*itr]], 
+                                                B_val[vmap[*itr]] + epsilon + delay,
+                                                name.str().c_str());
+
                         model.add(fixed_B[vmap[*itr]]);
                         name.str(""); 
                         
@@ -1543,7 +1582,6 @@ void RollingHorizon<Q>::erase_dropped_off(bool consider_excess_ride_time, DARP& 
 
     }
 }
-
 
 template<int Q>
 void RollingHorizon<Q>::erase_denied(bool consider_excess_ride_time, DARP& D, DARPGraph<Q>& G, IloEnv& env, IloModel& model, IloNumArray& B_val, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloNumVarArray& d, IloRangeArray& accept, IloRangeArray& serve_accepted, IloRangeArray& excess_ride_time, IloRangeArray& fixed_B, IloRangeArray& fixed_x)
@@ -1772,10 +1810,8 @@ void RollingHorizon<Q>::erase_denied(bool consider_excess_ride_time, DARP& D, DA
     }
 }
 
-
-
 template<int Q>
-void RollingHorizon<Q>::erase_picked_up(DARPGraph<Q>& G, IloEnv& env, IloModel& model, IloNumArray& B_val, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloRangeArray& accept, IloRangeArray& serve_accepted, IloRangeArray& fixed_B, IloRangeArray& fixed_x)
+void RollingHorizon<Q>::erase_picked_up(DARP& D, DARPGraph<Q>& G, IloEnv& env, IloModel& model, IloNumArray& B_val, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloRangeArray& accept, IloRangeArray& serve_accepted, IloRangeArray& fixed_B, IloRangeArray& fixed_x)
 {
     // We use this stringstream to create variable and constraint names
     std::stringstream name;
@@ -1800,7 +1836,16 @@ void RollingHorizon<Q>::erase_picked_up(DARPGraph<Q>& G, IloEnv& env, IloModel& 
                     name << "fixed_B_(" << v[0] << "," << v[1] << "," << v[2] << ")";
                 else
                     name << "fixed_B_(" << v[0] << "," << v[1] << "," <<  v[2] << "," << v[3] << "," << v[4] << "," << v[5] << ")";
-                fixed_B[vmap[v]] = IloRange(env, B_val[vmap[v]] - epsilon, B[vmap[v]], B_val[vmap[v]] + epsilon, name.str().c_str());
+                
+                //add artificial delay to the pick-up node of 5% of the ride of the passenger
+                //B_val[vmap[v]] += 0.02 * avg_ride_time;
+
+                fixed_B[vmap[v]] = IloRange(env, 
+                                        B_val[vmap[v]] - epsilon, 
+                                        B[vmap[v]], 
+                                        B_val[vmap[v]] + epsilon, 
+                                        name.str().c_str());
+
                 model.add(fixed_B[vmap[v]]);
                 name.str("");
                 
@@ -1813,7 +1858,7 @@ void RollingHorizon<Q>::erase_picked_up(DARPGraph<Q>& G, IloEnv& env, IloModel& 
                         name << "fixed_x(" << a[0][0] << "," << a[0][1] << "," << a[0][2] << "), (" << a[1][0] << "," << a[1][1] << "," << a[1][2] << ")";
                     else
                         name << "fixed_x(" << a[0][0] << "," << a[0][1] << "," << a[0][2] << "," << a[0][3] << "," << a[0][4] << "," << a[0][5] << "), (" << a[1][0] << "," << a[1][1] << "," << a[1][2] << "," << a[1][3] << "," << a[1][4] << "," << a[1][5] << ")";
-                    fixed_x[amap[a]] = IloRange(env, 0, x[amap[a]], 0, name.str().c_str());
+                   fixed_x[amap[a]] = IloRange(env, 0, x[amap[a]], 0, name.str().c_str());
                     model.add(fixed_x[amap[a]]);  
                     name.str("");
                 }
@@ -1861,8 +1906,6 @@ void RollingHorizon<Q>::erase_picked_up(DARPGraph<Q>& G, IloEnv& env, IloModel& 
     }
 }
 
-
-
 template<int Q>
 void RollingHorizon<Q>::create_new_variables(bool heuristic, DARP& D, DARPGraph<Q>& G, IloEnv& env, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloNumVarArray& d, IloRangeArray& fixed_B, IloRangeArray& fixed_x, const std::array<double,3>& w)
 {
@@ -1873,7 +1916,7 @@ void RollingHorizon<Q>::create_new_variables(bool heuristic, DARP& D, DARPGraph<
     if (heuristic)
     {
         choose_paths(10, 0.25);  // min(10, 0.25 * num_feas_paths) paths allowed
-        std::cout << std::endl << "Num of feas paths: 25%, but at least 10\n";
+        //std::cout << std::endl << "Num of feas paths: 25%, but at least 10\n";
     }
     
     G.create_new_nodes(D, f, new_requests);
@@ -1934,7 +1977,6 @@ void RollingHorizon<Q>::create_new_variables(bool heuristic, DARP& D, DARPGraph<
     }
 }
 
-
 template<int Q>
 void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_time, DARP& D, DARPGraph<Q>& G, IloEnv& env, IloModel& model, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloNumVarArray& d, IloNumVar& d_max, IloRangeArray& accept, IloRangeArray& serve_accepted, IloRangeArray& time_window_ub, IloRangeArray& time_window_lb, IloArray<IloRangeArray>& max_ride_time, IloRangeArray& travel_time, IloRangeArray& flow_preservation, IloRangeArray& excess_ride_time, IloRangeArray& fixed_B, IloRangeArray& fixed_x, IloRangeArray& pickup_delay, IloRange& num_tours, IloObjective& obj, IloExpr& obj1, IloExpr& obj3, const std::array<double,3>& w)
 {
@@ -1949,7 +1991,24 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
             name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << ")";
         else
             name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << "," << a[1][3] << "," << a[1][4] << "," << a[1][5] << ")";
-        fixed_B[vmap[a[1]]] = IloRange(env, active_node[a[1][0]-1].second - epsilon, B[vmap[a[1]]], active_node[a[1][0]-1].second + epsilon, name.str().c_str());
+        
+        double delay = 0.0;
+        auto rn = rand();
+
+        if (rn % 10 == 0) {
+            delay = 0.01;
+        } else if (rn % 5 == 0) {
+            delay = 0.01;
+        }
+
+        delay = 0.0;
+
+        fixed_B[vmap[a[1]]] = IloRange(env,
+                                    active_node[a[1][0]-1].second - epsilon + delay, 
+                                    B[vmap[a[1]]], 
+                                    active_node[a[1][0]-1].second + epsilon + delay, 
+                                    name.str().c_str());
+        
         model.add(fixed_B[vmap[a[1]]]);
         name.str("");  
     }
@@ -1963,7 +2022,8 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
             name << "fixed_x(" << a[0][0] << "," << a[0][1] << "," << a[0][2] << "), (" << a[1][0] << "," << a[1][1] << "," << a[1][2] << ")";
         else
             name << "fixed_x(" << a[0][0] << "," << a[0][1] << "," << a[0][2] << "," << a[0][3] << "," << a[0][4] << "," << a[0][5] << "), (" << a[1][0] << "," << a[1][1] << "," << a[1][2] << "," << a[1][3] << "," << a[1][4] << "," << a[1][5] << ")";
-        fixed_x[amap[a]] = IloRange(env, 1, x[amap[a]], 1, name.str().c_str());
+        
+        fixed_x[amap[a]] = IloRange(env,1, x[amap[a]], 1, name.str().c_str());
         model.add(fixed_x[amap[a]]);  
         name.str("");
     }
@@ -2038,7 +2098,7 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
         }   
     }
     
-    std::cout << "modify obj " << modify_obj << std::endl;
+    //std::cout << "modify obj " << modify_obj << std::endl;
     // update objective function
     expr = obj.getExpr();
     for (const auto& a: G.A_new)
@@ -2498,7 +2558,6 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
     expr.end();
 }
 
-
 template<int Q>
 void RollingHorizon<Q>::first_milp(bool accept_all, bool consider_excess_ride_time, DARP& D, DARPGraph<Q>& G, IloEnv& env, IloModel& model, IloNumArray& B_val, IloNumArray& d_val, IloIntArray& p_val, IloIntArray& x_val, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloNumVarArray& d, IloNumVar& d_max, IloRangeArray& accept, IloRangeArray& serve_accepted, IloRangeArray& time_window_ub, IloRangeArray& time_window_lb, IloArray<IloRangeArray>& max_ride_time, IloRangeArray& travel_time, IloRangeArray& flow_preservation, IloRangeArray& excess_ride_time, IloRangeArray& fixed_B, IloRangeArray& fixed_x, IloRangeArray& pickup_delay, IloRange& num_tours, IloObjective& obj, IloExpr& obj1, IloExpr& obj2, IloExpr& obj3, const std::array<double,3>& w)
 {
@@ -2842,13 +2901,10 @@ void RollingHorizon<Q>::first_milp(bool accept_all, bool consider_excess_ride_ti
     expr.end(); 
 }
 
-
-
 template<int Q>
-void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_val, IloIntArray& x_val)
+void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_val, IloIntArray& x_val, IloRangeArray& fixed_B)
 {
     // output solution we have so far
-
     bool flag;
     int route_count = 0;    
     int current;
@@ -2860,9 +2916,7 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
     for (const auto& a: G.A)
     {
         if (x_val[amap[a]] > 0.9)
-        {
             cycle_arcs.push_back(a);
-        }
     }
 
     while (!cycle_arcs.empty())
@@ -2871,11 +2925,10 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
         flag = false;
         for (const auto& a: cycle_arcs)
         {
-
-        
             if (a[0] == G.depot)
             {
-                std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << "Start";
+                //std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << "Vehicle " << route_count+1 << ": ";
+                std::cout << std::left << setw(STRINGWIDTH) << setfill(' ')  << MANJ_GREEN << "Fhzg " << route_count+1 << ": ";
                 b = a;
                 cycle_arcs.erase(std::remove(cycle_arcs.begin(), cycle_arcs.end(), a), cycle_arcs.end());
                 
@@ -2904,22 +2957,24 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                         if (f[0] == b[1])
                         {
                             cycle.push_back(f);
-                            if(time > time_passed) {
-                                std::cout << "\033[1;37m\033[48;2;22;160;133m";
+            
+                            if (time < time_passed) {
+                                
+                                //auto real_time = fixed_B[vmap[f[0]]].getUB();
+                                std::cout << YELLOW_UNDERLINED; 
                                 if (f[0][0] > n)
-                                    std::cout << std::left << " -" << f[0][0] - n << setfill(' ');
+                                    std::cout << std::left << "-" << f[0][0] - n << setfill(' ');
                                 else
-                                    std::cout << std::left << " +" << f[0][0] << setfill(' ');
-                                std::cout << "\033[0;95m\033[48;2;22;160;133m " << time << "\033[0m";
-                            }
-                            else {
-                                std::cout << "\033[0m"; 
-                                if (f[0][0] > n)
-                                    std::cout << std::left << " -" << f[0][0] - n << setfill(' ');
-                                else
-                                    std::cout << std::left << " +" << f[0][0] << setfill(' ');
+                                    std::cout << std::left << "+" << f[0][0] << setfill(' ');
                             
-                                std::cout << "\033[0;37m " << time << "\033[0m";
+                                std::cout << FORMAT_STOP << WHITE << time << FORMAT_STOP;
+                            } else {
+                                std::cout << WHITE_YELLOW_BG;
+                                if (f[0][0] > n)
+                                    std::cout << std::left << "-" << f[0][0] - n << setfill(' ');
+                                else
+                                    std::cout << std::left << "+" << f[0][0] << setfill(' ');
+                                std::cout << BLACK_YELLOW_BG << time << FORMAT_STOP;
                             }
                             
                             if (f[1] != G.depot)
@@ -2943,6 +2998,7 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                         }
                     }
                 }
+                std::cout << std::endl << std::endl;
 
                 D.route[route_count].end = current;
                 D.next_array[current] = DARPH_DEPOT;
@@ -2951,7 +3007,6 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                 {
                     D.nodes[a[0][0]].beginning_service = B_val[vmap[a[0]]];
                 }
-                std::cout << std::endl;
                 cycle.clear();
                 flag = true;
                 route_count++;
@@ -2961,10 +3016,8 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
         }
     }
     D.pred_array[DARPH_DEPOT] = -D.route[route_count-1].end;
-    std::cout << std::endl;
     cycle_arcs.clear();
 }
-
 
 template<int Q>
 void RollingHorizon<Q>::update_graph_sets(bool consider_excess_ride_time, DARPGraph<Q>& G, IloNumArray& B_val, IloNumArray& d_val, IloIntArray& p_val, IloIntArray& x_val)
@@ -3010,19 +3063,20 @@ void RollingHorizon<Q>::update_graph_sets(bool consider_excess_ride_time, DARPGr
         d_val.add(new_requests.size(), IloNum());
 }
 
-
 template<int Q>
-void RollingHorizon<Q>::get_solution_values(bool consider_excess_ride_time, DARP& D, DARPGraph<Q>& G, IloCplex& cplex, IloNumArray& B_val, IloNumArray& d_val, IloIntArray& p_val, IloIntArray& x_val, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloNumVarArray& d)
+void RollingHorizon<Q>::get_solution_values(bool consider_excess_ride_time, DARP& D, DARPGraph<Q>& G, IloCplex& cplex, IloNumArray& B_val, IloNumArray& d_val, IloIntArray& p_val, IloIntArray& x_val, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloNumVarArray& d, IloRangeArray& fixed_B)
 {
   
     // If CPLEX successfully solved the model, print the results
+#if VERBOSE
     std::cout << "\nCplex success!\n";
     std::cout << "\tStatus: " << cplex.getStatus() << "\n";
     std::cout << "\tObjective value: " << cplex.getObjValue() << "\n";    
     std::cout << "\tRelative MIP Gap: " << cplex.getMIPRelativeGap() << "\n";
     std::cout << "\tModel MILP " << dur_model.count() << "s" << std::endl;
     std::cout << "\tModel + Solve MILP " << dur_solve.count() << "s" << std::endl;  
-    
+#endif
+
     // get solution values
     B_val[vmap[G.depot]] = cplex.getValue(B[vmap[G.depot]]);
     for (const auto& v: G.V_in)
@@ -3063,7 +3117,7 @@ void RollingHorizon<Q>::get_solution_values(bool consider_excess_ride_time, DARP
         }
     }
 
-    print_routes(D, G, B_val, x_val);
+    print_routes(D, G, B_val, x_val, fixed_B);
 
     
     // important: execute function print_routes first to assgin value to D.nodes[i].beginning_service

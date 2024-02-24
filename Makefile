@@ -5,7 +5,8 @@ LIBFORMAT  = static_pic
 # Compiler selection
 CCC = g++ -O0 
 # Compiler options
-CCOPT = -std=c++17 -m64 -O -fPIC -fno-strict-aliasing -fexceptions -DNDEBUG -DIL_STD -Wno-ignored-attributes -g # -g for debugging
+#CCOPT = -std=c++17 -m64 -O -fPIC -fno-strict-aliasing -fexceptions -DNDEBUG -DIL_STD -Wno-ignored-attributes -g # -g for debugging
+CCOPT = -std=c++17 -m64 -fPIC -fno-strict-aliasing -fexceptions -DNDEBUG -DIL_STD -Wno-ignored-attributes -g # -g for debugging
 
 
 # replace the following lines with location of your cplex directory

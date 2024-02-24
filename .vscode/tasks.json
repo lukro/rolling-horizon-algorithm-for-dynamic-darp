@@ -1,6 +1,11 @@
 {
     "tasks": [
         {
+            "label": "make",
+            "command": "make",
+            "detail": "make"
+        },
+        {
             "type": "cppbuild",
             "label": "C/C++: g++ build active file",
             "command": "/usr/bin/g++",
@@ -8,6 +13,7 @@
                 "-fdiagnostics-color=always",
                 "-I /opt/ibm/ILOG/CPLEX_Studio2211/concert/include",
                 "-I /opt/ibm/ILOG/CPLEX_Studio2211/cplex/include",
+                "-I /inc",
                 "-L /opt/ibm/ILOG/CPLEX_Studio2211/cplex/lib/x86-64_linux/static_pic",
                 "-L /opt/ibm/ILOG/CPLEX_Studio2211/concert/lib/x86-64_linux/static_pic",
                 "-g",

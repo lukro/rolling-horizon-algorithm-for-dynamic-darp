@@ -159,7 +159,9 @@ void DARP::read_file(std::string infile, std::string data_directory, std::string
             std::getline(file, line);
             std::istringstream iss(line);
             iss >> nodes[i].id >> nodes[i].service_time >> nodes[i].demand >> nodes[i].start_tw >> nodes[i].end_tw >> nodes[i].max_ride_time;
+#if VERBOSE
             std::cout << nodes[i].id << " " << nodes[i].service_time << " " << nodes[i].demand << " " << nodes[i].start_tw << " " << nodes[i].end_tw << " " << nodes[i].max_ride_time << std::endl;
+#endif
             i++;
         }
         // all requests are inbound

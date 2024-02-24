@@ -1,2 +1,7 @@
-lib/libdarph.a
-no_011_6_req_details.txt
+*.o
+*.a
+*.so
+data/*
+bin/*
+output/*
+.vscode/*
