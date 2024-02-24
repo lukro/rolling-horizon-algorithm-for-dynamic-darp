@@ -1,7 +1,10 @@
 *.o
 *.a
 *.so
+*.txt
 data/*
 bin/*
 output/*
 output.csv
+bin/darp_cplex_3
+bin/darp_cplex_6

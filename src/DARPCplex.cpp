@@ -2917,14 +2917,13 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
 
     while (!cycle_arcs.empty())
     {
-        std::cout << std::endl;
         flag = false;
         for (const auto& a: cycle_arcs)
         {
             if (a[0] == G.depot)
             {
                 //std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << "Vehicle " << route_count+1 << ": ";
-                std::cout << std::left << setw(STRINGWIDTH) << setfill(' ')  << MANJ_GREEN << "Fhzg " << route_count+1 << ": ";
+                std::cout << std::left << setw(STRINGWIDTH) << setfill(' ')  << MANJ_GREEN << "Fahrzeug " << route_count+1 << ":" << FORMAT_STOP << std::endl;
                 b = a;
                 cycle_arcs.erase(std::remove(cycle_arcs.begin(), cycle_arcs.end(), a), cycle_arcs.end());
                 
@@ -2953,25 +2952,25 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                         if (f[0] == b[1])
                         {
                             cycle.push_back(f);
-            
-                            if (time < time_passed) {
-                                
-                                //auto real_time = fixed_B[vmap[f[0]]].getUB();
-                                std::cout << YELLOW_UNDERLINED; 
-                                if (f[0][0] > n)
-                                    std::cout << std::left << "-" << f[0][0] - n << setfill(' ');
-                                else
-                                    std::cout << std::left << "+" << f[0][0] << setfill(' ');
-                            
-                                std::cout << FORMAT_STOP << WHITE << time << FORMAT_STOP;
-                            } else {
-                                std::cout << WHITE_YELLOW_BG;
-                                if (f[0][0] > n)
-                                    std::cout << std::left << "-" << f[0][0] - n << setfill(' ');
-                                else
-                                    std::cout << std::left << "+" << f[0][0] << setfill(' ');
-                                std::cout << BLACK_YELLOW_BG << time << FORMAT_STOP;
-                            }
+
+                            std::ostringstream output;
+                            std::ostringstream id_block;
+                            std::ostringstream time_block;
+
+                            if (f[0][0] > n)
+                                id_block << std::setw(3) << "-" + std::to_string(f[0][0] - n);
+                            else
+                                id_block << std::setw(3) << "+" + std::to_string(f[0][0]);
+
+                            time_block << std::setw(7) << std::fixed << std::setprecision(2) << time << FORMAT_STOP;
+
+                            if (time < time_passed) 
+                                output << YELLOW_UNDERLINED << id_block.str() << WHITE << time_block.str();
+                            else 
+                                output << WHITE_YELLOW_BG << id_block.str() << BLACK_YELLOW_BG << time_block.str();
+
+                            std::cout << output.str() << "  ";
+                            //blocks zusammenführen für in einer Zeile
                             
                             if (f[1] != G.depot)
                             {
@@ -2994,7 +2993,7 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                         }
                     }
                 }
-                std::cout << std::endl << std::endl;
+                std::cout << std::endl;
 
                 D.route[route_count].end = current;
                 D.next_array[current] = DARPH_DEPOT;
@@ -3160,10 +3159,10 @@ void RollingHorizon<Q>::printHeader(int num_milps) {
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
     std::string milp_str = "MILP " + std::to_string(num_milps);
-    int num_dashes = (w.ws_col - milp_str.length()) / 2; // Subtract 2 for the spaces
-    std::string dashes = std::string(num_dashes, '-');
+    int num_dashes = (w.ws_col - milp_str.length()) / 2 - 1; // Subtract 2 for the spaces
+    std::string dashes = std::string(num_dashes, ' ');
 
-    std::cout << WHITE_MANJ_GREEN_BG << dashes << milp_str << dashes;
+    std::cout << std::endl << WHITE_MANJ_GREEN_BG << dashes << milp_str << dashes;
 
     // If the terminal width is odd and the milp_str length is even (or vice versa), print an extra dash
     if ((w.ws_col - milp_str.length()) % 2 != 0) { // Subtract 2 for the spaces
