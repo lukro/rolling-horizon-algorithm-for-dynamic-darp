@@ -4,4 +4,4 @@
 data/*
 bin/*
 output/*
-.vscode/*
+output.csv

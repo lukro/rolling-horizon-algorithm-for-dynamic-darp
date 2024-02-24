@@ -10,7 +10,27 @@
           "request": "launch",
           "program": "${workspaceFolder}/bin/darp_cplex_6",
           "args": [
-              "no_011_6_req"
+              "no_011_6_req",
+              "-td", "0.1",
+              "-bd", "0",
+              "-p", "0.1",
+          ],
+          "stopAtEntry": false,
+          "cwd": "${workspaceFolder}",
+          "environment": [],
+          "externalConsole": false,
+          "MIMode": "gdb",
+          "setupCommands": [],
+          //"preLaunchTask": "make",
+          "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+          "name": "Mode 1",
+          "type": "cppdbg",
+          "request": "launch",
+          "program": "${workspaceFolder}/bin/darp_cplex_6",
+          "args": [
+              "b3-36"
           ],
           "stopAtEntry": false,
           "cwd": "${workspaceFolder}",
@@ -22,4 +42,5 @@
           "miDebuggerPath": "/usr/bin/gdb"
         }
       ]
+      
 }

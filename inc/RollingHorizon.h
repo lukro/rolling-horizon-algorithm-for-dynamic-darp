@@ -42,10 +42,10 @@ private:
     sec dur_model;
     sec dur_solve;
 
-
 public:
     // Constructor
     RollingHorizon(int);
+    RollingHorizon(int, double, double, double);
     ~RollingHorizon();
     // no copy/ move constructor or assignment/ move operator needed so far
 
@@ -69,6 +69,7 @@ public:
     void update_graph_sets(bool consider_excess_ride_time, DARPGraph<S>& G, IloNumArray& B_val, IloNumArray& d_val, IloIntArray& p_val, IloIntArray& x_val); // only for num_milps > 1
     void get_solution_values(bool consider_excess_ride_time, DARP& D, DARPGraph<S>& G, IloCplex& cplex, IloNumArray& B_val, IloNumArray& d_val, IloIntArray& p_val, IloIntArray& x_val, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloNumVarArray& d, IloRangeArray& fixed_B);
     void print_routes(DARP& D, DARPGraph<S>& G, IloNumArray& B_val, IloIntArray& x_val, IloRangeArray& B);
+    void printHeader(int num_milps);
 
     // complete routine
     std::array<double,3> solve(bool accept_all, bool consider_excess_ride_time, bool dynamic, bool heuristic, DARP& D, DARPGraph<S>& G, const std::array<double,3>& w = {1,60,0.1});

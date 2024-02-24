@@ -1,4 +1,6 @@
 #include "DARPH.h"
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 template <int Q>
 std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_excess_ride_time, bool dynamic, bool heuristic, DARP& D, DARPGraph<Q>& G, const std::array<double,3>& w)
@@ -117,8 +119,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
         }
         tusnr = tusnr - (tunnr + time_passed);
     
-
-        std::cout << WHITE_MANJ_GREEN_BG << "----------------------------------------- MILP " << num_milps << " -----------------------------------------" << FORMAT_STOP << std::endl;
+        printHeader(num_milps);
 #if VERBOSE 
         std::cout << std::endl << "Time passed [m]: " << time_passed << std::endl;
         sort(D.known_requests.begin(), D.known_requests.end());
@@ -282,9 +283,8 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
                 
 
                 num_milps++;
-
-
-                std::cout << WHITE_MANJ_GREEN_BG << "----------------------------------------- MILP " << num_milps << " -----------------------------------------" << FORMAT_STOP << std::endl;
+                
+                printHeader(num_milps);
 #if VERBOSE
                 std::cout << std::endl << "Time passed [m]: " << time_passed << std::endl;
                 sort(D.known_requests.begin(), D.known_requests.end());
@@ -391,6 +391,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
                     std::cerr << "\n\nCplex error!\n";
                     std::cerr << "\tStatus: " << cplex.getStatus() << "\n";
                     std::cerr << "\tSolver status: " << cplex.getCplexStatus() << "\n";
+                    exit(1);
                 }
                 
                 // build new model and solve again   
@@ -1991,22 +1992,11 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
             name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << ")";
         else
             name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << "," << a[1][3] << "," << a[1][4] << "," << a[1][5] << ")";
-        
-        double delay = 0.0;
-        auto rn = rand();
-
-        if (rn % 10 == 0) {
-            delay = 0.01;
-        } else if (rn % 5 == 0) {
-            delay = 0.01;
-        }
-
-        delay = 0.0;
 
         fixed_B[vmap[a[1]]] = IloRange(env,
-                                    active_node[a[1][0]-1].second - epsilon + delay, 
+                                    active_node[a[1][0]-1].second - epsilon + bv_delay, 
                                     B[vmap[a[1]]], 
-                                    active_node[a[1][0]-1].second + epsilon + delay, 
+                                    active_node[a[1][0]-1].second + epsilon + bv_delay, 
                                     name.str().c_str());
         
         model.add(fixed_B[vmap[a[1]]]);
@@ -2324,7 +2314,12 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
     {
         if (std::find(all_fixed_edges.begin(), all_fixed_edges.end(), a) == all_fixed_edges.end())
         {
-            travel_time[amap[a]].setUB(-time_passed);
+            
+            if (probability == 0 || dis(gen) >= probability) {
+                travel_time[amap[a]].setUB(-time_passed);
+            } else {
+                travel_time[amap[a]].setUB(-time_passed - tt_delay);
+            }
         }
     }  
 
@@ -3156,6 +3151,25 @@ void RollingHorizon<Q>::get_solution_values(bool consider_excess_ride_time, DARP
     
     total_time_model += dur_model.count();
     total_time_model_solve += dur_solve.count();  
+}
+
+template<int Q>
+void RollingHorizon<Q>::printHeader(int num_milps) {
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
+    std::string milp_str = "MILP " + std::to_string(num_milps);
+    int num_dashes = (w.ws_col - milp_str.length()) / 2; // Subtract 2 for the spaces
+    std::string dashes = std::string(num_dashes, '-');
+
+    std::cout << WHITE_MANJ_GREEN_BG << dashes << milp_str << dashes;
+
+    // If the terminal width is odd and the milp_str length is even (or vice versa), print an extra dash
+    if ((w.ws_col - milp_str.length()) % 2 != 0) { // Subtract 2 for the spaces
+        std::cout << "-";
+    }
+
+    std::cout << FORMAT_STOP << std::endl;
 }
 
 

@@ -8,8 +8,25 @@ int main(int argc,char* argv[])
     bool heuristic = true;
 
     std::string instance(argv[1]);
+
+    //optional arguments
+    double tt_delay = 0, bv_delay = 0, probability = 1;
+    for (int i = 2; i < argc; i++) {
+        std::string arg(argv[i]);
+        if ((arg == "-td") && i + 1 < argc) {
+            tt_delay = std::stod(argv[++i]);
+        } else if ((arg == "-bd") && i + 1 < argc) {
+            bv_delay = std::stod(argv[++i]);
+        } else if ((arg == "-p") && i + 1 < argc) {
+            probability = std::stod(argv[++i]);
+        } else {
+            std::cerr << "Unknown argument: " << arg << std::endl;
+        }
+    }
     
-    const std::string data_directory = "data/WSW/"; 
+    //const std::string data_directory = "data/WSW/"; 
+    const std::string data_directory = "data/a_b_first_line_modified/"; 
+
     
     std::string path_to_instance = data_directory + instance + ".txt";
    
@@ -17,7 +34,7 @@ int main(int argc,char* argv[])
     int num_requests = DARPGetDimension(path_to_instance)/2;
     
     auto D = DARP(num_requests);
-    auto RH = RollingHorizon<6>(num_requests);  
+    auto RH = RollingHorizon<6>(num_requests, tt_delay, bv_delay, probability);  
     
     // switch between different types of instances
     // 1: instances Berbeglia et al. (2012)

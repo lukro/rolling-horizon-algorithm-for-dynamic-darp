@@ -14,6 +14,14 @@ RollingHorizon<Q>::RollingHorizon(int num_requests) : DARPSolver{num_requests}
 }
 
 template<int Q>
+RollingHorizon<Q>::RollingHorizon(int num_requests, double tt_delay, double bv_delay, double probability) 
+    : RollingHorizon<Q>{num_requests} {
+    this->tt_delay = tt_delay;
+    this->bv_delay = bv_delay;
+    this->probability = probability;
+}
+
+template<int Q>
 RollingHorizon<Q>::~RollingHorizon() {
     delete[] communicated_pickup;
     delete[] vec_map;
