@@ -10,9 +10,9 @@
           "request": "launch",
           "program": "${workspaceFolder}/bin/darp_cplex_6",
           "args": [
-              "no_011_6_req",
+              "2",
               "-td", "0.1",
-              "-bd", "0",
+              "-bd", "5",
               "-p", "0.1",
           ],
           "stopAtEntry": false,

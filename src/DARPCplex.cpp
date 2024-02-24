@@ -1993,10 +1993,11 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
         else
             name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << "," << a[1][3] << "," << a[1][4] << "," << a[1][5] << ")";
 
+        active_node[a[1][0]-1].second += bv_delay;
         fixed_B[vmap[a[1]]] = IloRange(env,
-                                    active_node[a[1][0]-1].second - epsilon + bv_delay, 
+                                    active_node[a[1][0]-1].second - epsilon, 
                                     B[vmap[a[1]]], 
-                                    active_node[a[1][0]-1].second + epsilon + bv_delay, 
+                                    active_node[a[1][0]-1].second + epsilon, 
                                     name.str().c_str());
         
         model.add(fixed_B[vmap[a[1]]]);

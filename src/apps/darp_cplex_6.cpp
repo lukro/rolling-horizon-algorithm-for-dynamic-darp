@@ -6,8 +6,17 @@ int main(int argc,char* argv[])
     bool consider_excess_ride_time = true;
     bool dynamic = true; 
     bool heuristic = true;
+    std::string instance;
+    std::string data_directory;
 
-    std::string instance(argv[1]);
+    std::string inst(argv[1]);
+    if(inst == "2") {
+        instance = "no_011_6_req";
+        data_directory = "data/WSW/"; 
+    } else {
+        instance = argv[1];
+        data_directory = "data/a_b_first_line_modified/"; 
+    }
 
     //optional arguments
     double tt_delay = 0, bv_delay = 0, probability = 1;
@@ -23,14 +32,8 @@ int main(int argc,char* argv[])
             std::cerr << "Unknown argument: " << arg << std::endl;
         }
     }
-    
-    //const std::string data_directory = "data/WSW/"; 
-    const std::string data_directory = "data/a_b_first_line_modified/"; 
-
-    
+        
     std::string path_to_instance = data_directory + instance + ".txt";
-   
-    
     int num_requests = DARPGetDimension(path_to_instance)/2;
     
     auto D = DARP(num_requests);
