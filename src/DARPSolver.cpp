@@ -1151,7 +1151,7 @@ void DARPSolver::compute_stats(DARP& D)
     avg_waiting_time = avg_waiting_time / answered_requests;
     avg_ride_time = avg_ride_time / answered_requests;
     avg_transportation_time = avg_transportation_time / answered_requests;
-    std::cout << MANJ_GREEN << "Average waiting time pick-up:" << FORMAT_STOP << roundf(avg_waiting_time * 100) / 100 << std::endl;
+    std::cout << MANJ_GREEN << "Average waiting time pick-up: " << FORMAT_STOP << roundf(avg_waiting_time * 100) / 100 << std::endl;
     std::cout << MANJ_GREEN << "Average ride time (of solution): " << FORMAT_STOP << roundf(avg_ride_time * 100) / 100 << std::endl; 
     std::cout << MANJ_GREEN << "Average transportation time: " << FORMAT_STOP << roundf(avg_transportation_time * 100) / 100 << std::endl;
 
@@ -1217,11 +1217,11 @@ void DARPSolver::compute_stats(DARP& D)
         std::cout << "System efficiency: " << system_efficiency << " != " << 1/avg_detour_factor * mean_occupancy * (1-share_empty_mileage) << std::endl;
     }
 
-    std::cout << MANJ_GREEN << "Average detour factor:" << FORMAT_STOP << avg_detour_factor << std::endl;
-    std::cout << MANJ_GREEN << "Mean occupancy:" << FORMAT_STOP << mean_occupancy << std::endl;
-    std::cout << MANJ_GREEN << "Share empty mileage:" << FORMAT_STOP << share_empty_mileage << std::endl;
-    std::cout << MANJ_GREEN << "System efficiency:" << FORMAT_STOP << system_efficiency << std::endl;
-    std::cout << MANJ_GREEN << "Pooling factor:" << FORMAT_STOP << pooling_factor << std::endl;
+    std::cout << MANJ_GREEN << "Average detour factor: " << FORMAT_STOP << avg_detour_factor << std::endl;
+    std::cout << MANJ_GREEN << "Mean occupancy: " << FORMAT_STOP << mean_occupancy << std::endl;
+    std::cout << MANJ_GREEN << "Share empty mileage: " << FORMAT_STOP << share_empty_mileage << std::endl;
+    std::cout << MANJ_GREEN << "System efficiency: " << FORMAT_STOP << system_efficiency << std::endl;
+    std::cout << MANJ_GREEN << "Pooling factor: " << FORMAT_STOP << pooling_factor << std::endl;
     
     return;
 }

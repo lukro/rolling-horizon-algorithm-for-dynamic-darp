@@ -2,6 +2,9 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <map>
+#include "RollingHorizon.h"
+#include <unistd.h>
+
 
 template <int Q>
 std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_excess_ride_time, bool dynamic, bool heuristic, DARP& D, DARPGraph<Q>& G, const std::array<double,3>& w)
@@ -448,7 +451,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
 #endif
             
             total_routing_costs = cplex.getValue(obj1);
-            std::cout << MANJ_GREEN << "Total routing costs:" << FORMAT_STOP << total_routing_costs << std::endl; 
+            std::cout << MANJ_GREEN << "Total routing costs: " << FORMAT_STOP << total_routing_costs << std::endl; 
 #if VERBOSE
             std::cout << "Average routing costs: " << roundf(total_routing_costs / (n - all_denied.size()) * 100) / 100 << std::endl; 
 #endif
@@ -459,7 +462,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
                 if (w[2] > DARPH_EPSILON)
                 {
                     total_excess_ride_time = cplex.getValue(obj3);
-                    std::cout << MANJ_GREEN << "Total excess ride time:" << FORMAT_STOP << total_excess_ride_time << std::endl; 
+                    std::cout << MANJ_GREEN << "Total excess ride time: " << FORMAT_STOP << total_excess_ride_time << std::endl; 
 #if VERBOSE
                     std::cout << "Average excess ride time: " << roundf(total_excess_ride_time / (n - all_denied.size()) * 100) / 100 << std::endl; 
 #endif
@@ -474,7 +477,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
                             total_excess_ride_time += D.nodes[n+i].beginning_service - D.nodes[n+i].start_tw;
                         }
                     }
-                    std::cout << MANJ_GREEN << "Total excess ride time:" << FORMAT_STOP << total_excess_ride_time << std::endl; 
+                    std::cout << MANJ_GREEN << "Total excess ride time: " << FORMAT_STOP << total_excess_ride_time << std::endl; 
 #if VERBOSE
                     std::cout << "Average excess ride time: " << roundf(total_excess_ride_time / (n - all_denied.size()) * 100) / 100 << std::endl; 
 #endif
@@ -488,7 +491,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
                 answered_requests = n - cplex.getValue(obj2);
             }
 
-            std::cout << MANJ_GREEN << "Number denied requests:" << FORMAT_STOP << n - answered_requests << std::endl;
+            std::cout << MANJ_GREEN << "Number denied requests: " << FORMAT_STOP << n - answered_requests << std::endl;
 #if VERBOSE
             std::cout << "Percentage denied requests: " << roundf(double(all_denied.size())/ n * 1000) / 1000 << std::endl;   
             std::cout << "Percentage denied requests due to timeout: " << roundf(denied_timeout / double(all_denied.size()) * 100) / 100 << std::endl;    
@@ -2006,12 +2009,13 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
         else
             name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << "," << a[1][3] << "," << a[1][4] << "," << a[1][5] << ")";
 
-        auto& from = a[0];
-        auto& to = a[1];
-        auto passengerFrom = from[0] - 1;
-        auto passengerTo = to[0] - 1;
-        auto& toEventTime = active_node[passengerTo].second;
+        NODE from = a[0];
+        NODE to = a[1];
+        int passengerFrom = from[0] - 1;
+        int passengerTo = to[0] - 1;
+        double& toEventTime = active_node[passengerTo].second;
 
+        //propagated delay
         for(auto& [delayed_node, propagated_delay]: delayed_nodes) {
             if (from == delayed_node) {
                 toEventTime += propagated_delay;
@@ -2020,7 +2024,7 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
                 break;
             }
         }
-
+        //independend random delay
         if (probability == 1 || dis(gen) <= probability) {
             toEventTime += bv_delay;
             std::cout << from << " -> " << to << " random delay of " << bv_delay << " minutes\n";
@@ -2938,7 +2942,12 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
 
     // Get the current terminal width
     struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    if (isatty(STDOUT_FILENO)) {
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    } else {
+        // If the output is not a terminal, set a default width
+        w.ws_col = 100;
+    }
     int terminal_width = w.ws_col;
 
     // output solution we have so far
@@ -2995,28 +3004,7 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                         {
                             cycle.push_back(f);
 
-                            // Check if the output block would exceed the terminal width
-                            if (characters_printed + 10 >= terminal_width) {
-                                std::cout << std::endl;
-                                characters_printed = 0;
-                            }
-
-                            std::ostringstream output;
-                            std::ostringstream time_block;
-
-                            if (f[0][0] > n)
-                                output << std::setw(3) << "-" + std::to_string(f[0][0] - n);
-                            else
-                                output << std::setw(3) << "+" + std::to_string(f[0][0]);
-                            time_block << std::setw(7) << std::fixed << std::setprecision(2) << time << FORMAT_STOP;
-
-
-                            if (time < time_passed) 
-                                std::cout << YELLOW_UNDERLINED << output.str() << WHITE << time_block.str() << "  ";
-                            else 
-                                std::cout << WHITE_YELLOW_BG << output.str() << BLACK_YELLOW_BG << time_block.str() << "  ";
-                            characters_printed += 12;  // Add the length of the output block to the counter
-
+                            printEventBlock(f[0][0], time, characters_printed, terminal_width);
                             
                             if (f[1] != G.depot)
                             {
@@ -3202,7 +3190,13 @@ void RollingHorizon<Q>::get_solution_values(bool consider_excess_ride_time, DARP
 template<int Q>
 void RollingHorizon<Q>::printHeader(int num_milps) {
     struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    if (isatty(STDOUT_FILENO)) {
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    } else {
+        // If the output is not a terminal, set a default width
+        w.ws_col = 100;
+    }
+    int terminal_width = w.ws_col;
 
     std::string milp_str = "MILP " + std::to_string(num_milps);
     int num_dashes = (w.ws_col - milp_str.length()) / 2 - 2; // Subtract 2 for the spaces
@@ -3217,6 +3211,29 @@ void RollingHorizon<Q>::printHeader(int num_milps) {
     std::cout << FORMAT_STOP << std::endl;
 }
 
+template<int Q>
+void RollingHorizon<Q>::printEventBlock(int node, double time, int& characters_printed, int terminal_width) {
+    if (characters_printed + 10 >= terminal_width) {
+        std::cout << std::endl;
+        characters_printed = 0;
+    }
+
+    std::ostringstream output;
+    std::ostringstream time_block;
+
+    if (node > n)
+        output << std::setw(3) << "-" + std::to_string(node - n);
+    else
+        output << std::setw(3) << "+" + std::to_string(node);
+    time_block << std::setw(7) << std::fixed << std::setprecision(2) << time << FORMAT_STOP;
+
+
+    if (time < time_passed) 
+        std::cout << YELLOW_UNDERLINED << output.str() << WHITE << time_block.str() << "  ";
+    else 
+        std::cout << WHITE_YELLOW_BG << output.str() << BLACK_YELLOW_BG << time_block.str() << "  ";
+    characters_printed += 12;  // Add the length of the output block to the counter
+}
 
 
 template class RollingHorizon<3>;

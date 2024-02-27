@@ -10,10 +10,23 @@
           "request": "launch",
           "program": "${workspaceFolder}/bin/darp_cplex_6",
           "args": [
-              "2",
-              "-bd", "0.05",
-              "-p", "1",
+              "-bm"
           ],
+          "stopAtEntry": false,
+          "cwd": "${workspaceFolder}",
+          "environment": [],
+          "externalConsole": false,
+          "MIMode": "gdb",
+          "setupCommands": [],
+          //"preLaunchTask": "make",
+          "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+          "name": "(gdb) Bash Debug",
+          "type": "cppdbg",
+          "request": "launch",
+          "program": "${workspaceFolder}/run_darp_cplex_6.sh",
+          "args": ["2"],
           "stopAtEntry": false,
           "cwd": "${workspaceFolder}",
           "environment": [],

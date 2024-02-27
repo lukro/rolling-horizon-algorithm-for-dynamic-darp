@@ -1,4 +1,12 @@
 {
+    {
+        "cmake.debugConfig": {
+            "args": [
+                ">",
+                "output.txt"
+            ]
+        }
+    }
     "makefile.launchConfigurations": [
         {
             "cwd": "/home/lukas/Dokumente/DARP/rolling-horizon-algorithm-for-dynamic-darp/bin",

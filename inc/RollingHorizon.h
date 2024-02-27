@@ -71,6 +71,8 @@ public:
     void print_routes(DARP& D, DARPGraph<S>& G, IloNumArray& B_val, IloIntArray& x_val, IloRangeArray& B);
     void printHeader(int num_milps);
 
+    void printEventBlock(int node, double time, int &characters_printed, int terminal_width);
+
     // complete routine
     std::array<double,3> solve(bool accept_all, bool consider_excess_ride_time, bool dynamic, bool heuristic, DARP& D, DARPGraph<S>& G, const std::array<double,3>& w = {1,60,0.1});
     // objective function weights

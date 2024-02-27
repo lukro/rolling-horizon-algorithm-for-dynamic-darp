@@ -1,4 +1,58 @@
 #include "DARPH.h"
+#include <fstream>
+#include <iostream>
+#include <string>
+
+void runBenchmark(double node_arrival_delay, double probability, int run) {
+    std::string instance = "no_011_6_req";
+    std::string data_directory = "data/WSW/"; 
+    std::string path_to_instance = data_directory + instance + ".txt";
+    int num_requests = DARPGetDimension(path_to_instance)/2;
+
+    auto D = DARP(num_requests);
+    auto RH = RollingHorizon<6>(num_requests, 0, node_arrival_delay, probability);
+
+    D.set_instance_mode(2);
+    D.read_file(path_to_instance, data_directory, instance);
+    D.transform_dynamic();
+
+    bool accept_all = false;
+    bool consider_excess_ride_time = true;
+    bool dynamic = true; 
+    bool heuristic = true;
+    auto G = DARPGraph<6>(num_requests);
+    auto lsg = RH.solve(accept_all, consider_excess_ride_time, dynamic, heuristic, D, G);
+    
+    RH.compute_stats(D);
+}
+
+
+void benchmark() {
+    std::streambuf* originalCoutBuffer = std::cout.rdbuf();
+
+    for(double node_arrival_delay = 0; node_arrival_delay <= 1; node_arrival_delay += 0.05) {
+        for(double probability = 0.1; probability <= 1; probability += 0.1) {
+            for(int run = 0; run < 10; run++) {
+                std::ostringstream output_filename;
+    
+                output_filename << "output/probability_travel-delay_run/"
+                                << std::setprecision(2) << probability << "p_"
+                                << std::setprecision(2) << std::setprecision(2) << node_arrival_delay
+                                << "nd";
+                if(run!=-1)
+                    output_filename << "_run" << run;
+                output_filename << ".txt";
+                std::ofstream outFile(output_filename.str());
+
+                std::cout.rdbuf(outFile.rdbuf()); 
+                runBenchmark(node_arrival_delay, probability, run);
+                std::cout.rdbuf(originalCoutBuffer); 
+
+                outFile.close();
+            }
+        }
+    }
+}
 
 int main(int argc,char* argv[]) 
 {
@@ -10,22 +64,25 @@ int main(int argc,char* argv[])
     std::string data_directory;
 
     std::string inst(argv[1]);
-    if(inst == "2") {
+    if(inst == "no6") {
         instance = "no_011_6_req";
         data_directory = "data/WSW/"; 
+    } else if (inst == "-bm") {
+        benchmark();
+        return 0;
     } else {
         instance = argv[1];
         data_directory = "data/a_b_first_line_modified/"; 
     }
 
     //optional arguments
-    double tt_delay = 0, bv_delay = 0, probability = 1;
+    double travel_time_delay = 0, node_arrival_delay = 0, probability = 1;
     for (int i = 2; i < argc; i++) {
         std::string arg(argv[i]);
-        if ((arg == "-td") && i + 1 < argc) {
-            tt_delay = std::stod(argv[++i]);
-        } else if ((arg == "-bd") && i + 1 < argc) {
-            bv_delay = std::stod(argv[++i]);
+        if ((arg == "--travel-time-delay") && i + 1 < argc) {
+            travel_time_delay = std::stod(argv[++i]);
+        } else if ((arg == "--node-delay" || arg == "-nd") && i + 1 < argc) {
+            node_arrival_delay = std::stod(argv[++i]);
         } else if ((arg == "-p") && i + 1 < argc) {
             probability = std::stod(argv[++i]);
         } else {
@@ -37,7 +94,7 @@ int main(int argc,char* argv[])
     int num_requests = DARPGetDimension(path_to_instance)/2;
     
     auto D = DARP(num_requests);
-    auto RH = RollingHorizon<6>(num_requests, tt_delay, bv_delay, probability);  
+    auto RH = RollingHorizon<6>(num_requests, travel_time_delay, node_arrival_delay, probability);  
     
     // switch between different types of instances
     // 1: instances Berbeglia et al. (2012)
@@ -67,10 +124,7 @@ int main(int argc,char* argv[])
     // solve instance
     auto lsg = RH.solve(accept_all, consider_excess_ride_time, dynamic, heuristic, D, G);
  
-    RH.compute_stats(D);
-    
-    RH.detailed_file(D,argv[1]);
-    
+    RH.compute_stats(D);    
     return 0;
 }
 
