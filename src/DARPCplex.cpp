@@ -1,6 +1,7 @@
 #include "DARPH.h"
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <map>
 
 template <int Q>
 std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_excess_ride_time, bool dynamic, bool heuristic, DARP& D, DARPGraph<Q>& G, const std::array<double,3>& w)
@@ -1981,9 +1982,21 @@ void RollingHorizon<Q>::create_new_variables(bool heuristic, DARP& D, DARPGraph<
 template<int Q>
 void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_time, DARP& D, DARPGraph<Q>& G, IloEnv& env, IloModel& model, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloNumVarArray& d, IloNumVar& d_max, IloRangeArray& accept, IloRangeArray& serve_accepted, IloRangeArray& time_window_ub, IloRangeArray& time_window_lb, IloArray<IloRangeArray>& max_ride_time, IloRangeArray& travel_time, IloRangeArray& flow_preservation, IloRangeArray& excess_ride_time, IloRangeArray& fixed_B, IloRangeArray& fixed_x, IloRangeArray& pickup_delay, IloRange& num_tours, IloObjective& obj, IloExpr& obj1, IloExpr& obj3, const std::array<double,3>& w)
 {
+    //For all fixed edges add delay
+    /*int delay = 0;
+    if (probability != 0 && dis(gen) <= probability) {
+        delay = bv_delay;
+        std::cout << "Yes";
+    } else {
+        std::cout << "No";
+    }*/
+
     // We use this stringstream to create variable and constraint names
     std::stringstream name;   
     IloExpr expr(env);
+    std::map<NODE, double> delayed_nodes;
+
+    std::cout << std::endl;
     
     // fix variable B_w for new fixed edges 
     for (const auto& a: fixed_edges)
@@ -1993,7 +2006,29 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
         else
             name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << "," << a[1][3] << "," << a[1][4] << "," << a[1][5] << ")";
 
-        active_node[a[1][0]-1].second += bv_delay;
+        auto& from = a[0];
+        auto& to = a[1];
+        auto passengerFrom = from[0] - 1;
+        auto passengerTo = to[0] - 1;
+        auto& toEventTime = active_node[passengerTo].second;
+
+        for(auto& [delayed_node, propagated_delay]: delayed_nodes) {
+            if (from == delayed_node) {
+                toEventTime += propagated_delay;
+                std::cout << from << " -> " << to << " propagated delay of "  << propagated_delay << " minutes\n";
+                delayed_nodes[to] += propagated_delay;
+                break;
+            }
+        }
+
+        if (probability == 1 || dis(gen) <= probability) {
+            toEventTime += bv_delay;
+            std::cout << from << " -> " << to << " random delay of " << bv_delay << " minutes\n";
+            delayed_nodes[to] += bv_delay;
+        } else {
+            std::cout << from << " -> " << to << " no (additional) delay\n";               
+        }
+
         fixed_B[vmap[a[1]]] = IloRange(env,
                                     active_node[a[1][0]-1].second - epsilon, 
                                     B[vmap[a[1]]], 
@@ -2315,12 +2350,12 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
     {
         if (std::find(all_fixed_edges.begin(), all_fixed_edges.end(), a) == all_fixed_edges.end())
         {
-            
-            if (probability == 0 || dis(gen) >= probability) {
+            /*if (probability == 0 || dis(gen) >= probability) {
                 travel_time[amap[a]].setUB(-time_passed);
             } else {
                 travel_time[amap[a]].setUB(-time_passed - tt_delay);
-            }
+            }*/
+            travel_time[amap[a]].setUB(-time_passed);
         }
     }  
 
@@ -2838,7 +2873,7 @@ void RollingHorizon<Q>::first_milp(bool accept_all, bool consider_excess_ride_ti
             for (const auto& a: G.delta_in[v])
             {
                 expr += x[amap[a]];
-            }
+            } 
             if constexpr (Q==3)
                 name << "time_window_ub_(" << v[0] << "," << v[1] << "," << v[2] << ")";
             else
@@ -2900,6 +2935,12 @@ void RollingHorizon<Q>::first_milp(bool accept_all, bool consider_excess_ride_ti
 template<int Q>
 void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_val, IloIntArray& x_val, IloRangeArray& fixed_B)
 {
+
+    // Get the current terminal width
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    int terminal_width = w.ws_col;
+
     // output solution we have so far
     bool flag;
     int route_count = 0;    
@@ -2920,6 +2961,7 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
         flag = false;
         for (const auto& a: cycle_arcs)
         {
+            int characters_printed = 0;
             if (a[0] == G.depot)
             {
                 //std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << "Vehicle " << route_count+1 << ": ";
@@ -2953,24 +2995,28 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                         {
                             cycle.push_back(f);
 
+                            // Check if the output block would exceed the terminal width
+                            if (characters_printed + 10 >= terminal_width) {
+                                std::cout << std::endl;
+                                characters_printed = 0;
+                            }
+
                             std::ostringstream output;
-                            std::ostringstream id_block;
                             std::ostringstream time_block;
 
                             if (f[0][0] > n)
-                                id_block << std::setw(3) << "-" + std::to_string(f[0][0] - n);
+                                output << std::setw(3) << "-" + std::to_string(f[0][0] - n);
                             else
-                                id_block << std::setw(3) << "+" + std::to_string(f[0][0]);
-
+                                output << std::setw(3) << "+" + std::to_string(f[0][0]);
                             time_block << std::setw(7) << std::fixed << std::setprecision(2) << time << FORMAT_STOP;
 
-                            if (time < time_passed) 
-                                output << YELLOW_UNDERLINED << id_block.str() << WHITE << time_block.str();
-                            else 
-                                output << WHITE_YELLOW_BG << id_block.str() << BLACK_YELLOW_BG << time_block.str();
 
-                            std::cout << output.str() << "  ";
-                            //blocks zusammenführen für in einer Zeile
+                            if (time < time_passed) 
+                                std::cout << YELLOW_UNDERLINED << output.str() << WHITE << time_block.str() << "  ";
+                            else 
+                                std::cout << WHITE_YELLOW_BG << output.str() << BLACK_YELLOW_BG << time_block.str() << "  ";
+                            characters_printed += 12;  // Add the length of the output block to the counter
+
                             
                             if (f[1] != G.depot)
                             {
@@ -3159,16 +3205,15 @@ void RollingHorizon<Q>::printHeader(int num_milps) {
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
     std::string milp_str = "MILP " + std::to_string(num_milps);
-    int num_dashes = (w.ws_col - milp_str.length()) / 2 - 1; // Subtract 2 for the spaces
+    int num_dashes = (w.ws_col - milp_str.length()) / 2 - 2; // Subtract 2 for the spaces
     std::string dashes = std::string(num_dashes, ' ');
 
     std::cout << std::endl << WHITE_MANJ_GREEN_BG << dashes << milp_str << dashes;
 
     // If the terminal width is odd and the milp_str length is even (or vice versa), print an extra dash
     if ((w.ws_col - milp_str.length()) % 2 != 0) { // Subtract 2 for the spaces
-        std::cout << "-";
+        std::cout << " ";
     }
-
     std::cout << FORMAT_STOP << std::endl;
 }
 
