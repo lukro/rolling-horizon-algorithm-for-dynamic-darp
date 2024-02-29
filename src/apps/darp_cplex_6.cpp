@@ -1,7 +1,5 @@
 #include "DARPH.h"
-#include <fstream>
-#include <iostream>
-#include <string>
+
 
 void runBenchmark(double node_arrival_delay, double probability, int run) {
     std::string instance = "no_011_6_req";
@@ -76,7 +74,7 @@ int main(int argc,char* argv[])
     }
 
     //optional arguments
-    double travel_time_delay = 0, node_arrival_delay = 0, probability = 1;
+    double travel_time_delay = 0, node_arrival_delay = 0, probability = 0;
     for (int i = 2; i < argc; i++) {
         std::string arg(argv[i]);
         if ((arg == "--travel-time-delay") && i + 1 < argc) {

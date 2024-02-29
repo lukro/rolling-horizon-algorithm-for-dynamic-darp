@@ -37,9 +37,9 @@ protected:
 
     //manual delays
     //TODO: auf ein Schema festlegen
-    double tt_delay = 0;
-    double bv_delay = 0;
-    double probability = 1;
+    double tt_delay;
+    double bv_delay;
+    double probability;
 
     std::random_device rd;
     std::mt19937 gen{rd()};

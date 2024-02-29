@@ -1,23 +1,20 @@
 {
-    {
-        "cmake.debugConfig": {
-            "args": [
-                ">",
-                "output.txt"
-            ]
-        }
-    }
-    "makefile.launchConfigurations": [
-        {
-            "cwd": "/home/lukas/Dokumente/DARP/rolling-horizon-algorithm-for-dynamic-darp/bin",
-            "binaryPath": "/home/lukas/Dokumente/DARP/rolling-horizon-algorithm-for-dynamic-darp/bin/darp_cplex_6",
-            "binaryArgs": ["no_011_6_req"]
-        }
-    ],
     "files.associations": {
-        "iomanip": "cpp",
-        "fstream": "cpp",
+        "iostream": "cpp",
         "array": "cpp",
+        "chrono": "cpp",
+        "deque": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp",
+        "string_view": "cpp",
+        "format": "cpp",
+        "initializer_list": "cpp",
+        "span": "cpp",
+        "valarray": "cpp",
         "atomic": "cpp",
         "strstream": "cpp",
         "bit": "cpp",
@@ -25,7 +22,6 @@
         "bitset": "cpp",
         "cctype": "cpp",
         "charconv": "cpp",
-        "chrono": "cpp",
         "cinttypes": "cpp",
         "clocale": "cpp",
         "cmath": "cpp",
@@ -42,15 +38,8 @@
         "ctime": "cpp",
         "cwchar": "cpp",
         "cwctype": "cpp",
-        "deque": "cpp",
-        "forward_list": "cpp",
-        "list": "cpp",
         "map": "cpp",
         "set": "cpp",
-        "string": "cpp",
-        "unordered_map": "cpp",
-        "unordered_set": "cpp",
-        "vector": "cpp",
         "exception": "cpp",
         "algorithm": "cpp",
         "functional": "cpp",
@@ -62,16 +51,14 @@
         "random": "cpp",
         "ratio": "cpp",
         "source_location": "cpp",
-        "string_view": "cpp",
         "system_error": "cpp",
         "tuple": "cpp",
         "type_traits": "cpp",
         "utility": "cpp",
-        "format": "cpp",
+        "fstream": "cpp",
         "future": "cpp",
-        "initializer_list": "cpp",
+        "iomanip": "cpp",
         "iosfwd": "cpp",
-        "iostream": "cpp",
         "istream": "cpp",
         "limits": "cpp",
         "mutex": "cpp",
@@ -79,7 +66,6 @@
         "numbers": "cpp",
         "ostream": "cpp",
         "semaphore": "cpp",
-        "span": "cpp",
         "sstream": "cpp",
         "stdexcept": "cpp",
         "stdfloat": "cpp",
@@ -87,9 +73,6 @@
         "streambuf": "cpp",
         "thread": "cpp",
         "typeinfo": "cpp",
-        "valarray": "cpp",
-        "variant": "cpp",
-        "*.inc": "cpp"
-    },
-    "C_Cpp.errorSquiggles": "enabled"
+        "variant": "cpp"
+    }
 }

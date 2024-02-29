@@ -42,7 +42,12 @@
 #include <string> 
 #include <cstring> // strcpy()
 
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <map>
 
+#include <fstream>
+#include <iostream>
 
 #include "DARPUtils.h"
 #include "DARPNode.h"

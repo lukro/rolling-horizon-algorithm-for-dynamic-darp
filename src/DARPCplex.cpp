@@ -1,9 +1,5 @@
 #include "DARPH.h"
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <map>
 #include "RollingHorizon.h"
-#include <unistd.h>
 
 
 template <int Q>
@@ -1997,51 +1993,8 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
     // We use this stringstream to create variable and constraint names
     std::stringstream name;   
     IloExpr expr(env);
-    std::map<NODE, double> delayed_nodes;
 
-    std::cout << std::endl;
-    
-    // fix variable B_w for new fixed edges 
-    for (const auto& a: fixed_edges)
-    {
-        if constexpr (Q==3)
-            name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << ")";
-        else
-            name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << "," << a[1][3] << "," << a[1][4] << "," << a[1][5] << ")";
-
-        NODE from = a[0];
-        NODE to = a[1];
-        int passengerFrom = from[0] - 1;
-        int passengerTo = to[0] - 1;
-        double& toEventTime = active_node[passengerTo].second;
-
-        //propagated delay
-        for(auto& [delayed_node, propagated_delay]: delayed_nodes) {
-            if (from == delayed_node) {
-                toEventTime += propagated_delay;
-                std::cout << from << " -> " << to << " propagated delay of "  << propagated_delay << " minutes\n";
-                delayed_nodes[to] += propagated_delay;
-                break;
-            }
-        }
-        //independend random delay
-        if (probability == 1 || dis(gen) <= probability) {
-            toEventTime += bv_delay;
-            std::cout << from << " -> " << to << " random delay of " << bv_delay << " minutes\n";
-            delayed_nodes[to] += bv_delay;
-        } else {
-            std::cout << from << " -> " << to << " no (additional) delay\n";               
-        }
-
-        fixed_B[vmap[a[1]]] = IloRange(env,
-                                    active_node[a[1][0]-1].second - epsilon, 
-                                    B[vmap[a[1]]], 
-                                    active_node[a[1][0]-1].second + epsilon, 
-                                    name.str().c_str());
-        
-        model.add(fixed_B[vmap[a[1]]]);
-        name.str("");  
-    }
+    incorporate_delay(name, env, model, B, fixed_B);    
 
     // fix variable x_a for new fixed_edges
     for (const auto& a: fixed_edges)
@@ -2973,8 +2926,7 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
             int characters_printed = 0;
             if (a[0] == G.depot)
             {
-                //std::cout << std::left << setw(STRINGWIDTH) << setfill(' ') << "Vehicle " << route_count+1 << ": ";
-                std::cout << std::left << setw(STRINGWIDTH) << setfill(' ')  << MANJ_GREEN << "Fahrzeug " << route_count+1 << ":" << FORMAT_STOP << std::endl;
+                //std::cout << std::left << setw(STRINGWIDTH) << setfill(' ')  << MANJ_GREEN << "VEHICLE " << route_count+1 << ":" << FORMAT_STOP << std::endl;
                 b = a;
                 cycle_arcs.erase(std::remove(cycle_arcs.begin(), cycle_arcs.end(), a), cycle_arcs.end());
                 
@@ -3004,7 +2956,7 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                         {
                             cycle.push_back(f);
 
-                            printEventBlock(f[0][0], time, characters_printed, terminal_width);
+                            //printEventBlock(f[0][0], time, characters_printed, terminal_width);
                             
                             if (f[1] != G.depot)
                             {
@@ -3027,7 +2979,7 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                         }
                     }
                 }
-                std::cout << std::endl;
+                //std::cout << std::endl;
 
                 D.route[route_count].end = current;
                 D.next_array[current] = DARPH_DEPOT;
@@ -3187,6 +3139,73 @@ void RollingHorizon<Q>::get_solution_values(bool consider_excess_ride_time, DARP
     total_time_model_solve += dur_solve.count();  
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 template<int Q>
 void RollingHorizon<Q>::printHeader(int num_milps) {
     struct winsize w;
@@ -3233,6 +3252,90 @@ void RollingHorizon<Q>::printEventBlock(int node, double time, int& characters_p
     else 
         std::cout << WHITE_YELLOW_BG << output.str() << BLACK_YELLOW_BG << time_block.str() << "  ";
     characters_printed += 12;  // Add the length of the output block to the counter
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+template<int Q>
+void RollingHorizon<Q>::incorporate_delay(std::stringstream& name, IloEnv& env, IloModel& model, IloNumVarArray& B, IloRangeArray& fixed_B) {
+    std::map <NODE, double> delayed_nodes;
+
+    std::sort(fixed_edges.begin(), fixed_edges.end(),
+        [this](const ARC& a, const ARC& b) {
+            return this->active_node[a[1][0]-1].second < this->active_node[b[1][0]-1].second;
+        }
+    );
+    std::cout << MANJ_GREEN << "Fixed edges: " << FORMAT_STOP << std::endl;
+
+    // fix variable B_w for new fixed edges 
+    for (const auto& a: fixed_edges)
+    {
+        if constexpr (Q==3)
+            name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << ")";
+        else
+            name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << "," << a[1][3] << "," << a[1][4] << "," << a[1][5] << ")";
+
+        NODE from = a[0];
+        NODE to = a[1];
+        int passengerFrom = from[0] - 1;
+        int passengerTo = to[0] - 1;
+        double& toEventTime = active_node[passengerTo].second;
+        
+        propagate_delay(delayed_nodes);
+
+        //independend random delay, propagated later
+        if (probability == 1 || dis(gen) <= probability) {
+            toEventTime += bv_delay;
+            std::cout << from << " -> " << to << " random delay of " << bv_delay << " minutes\n";
+            delayed_nodes[to] += bv_delay;
+        } else {
+            std::cout << from << " -> " << to << " no (independend) delay\n";               
+        }
+
+        fixed_B[vmap[a[1]]] = IloRange(env,
+                                       active_node[a[1][0]-1].second - epsilon, 
+                                       B[vmap[a[1]]], 
+                                       active_node[a[1][0]-1].second + epsilon, 
+                                       name.str().c_str());
+        
+        model.add(fixed_B[vmap[a[1]]]);
+        name.str("");  
+    }
+}
+
+template<int Q>
+void RollingHorizon<Q>::propagate_delay(std::map<NODE, double>& delayed_nodes) {
+    for (const auto& fixed_arc: fixed_edges)
+    {
+        NODE from = fixed_arc[0];
+        NODE to = fixed_arc[1];
+        int passengerFrom = from[0] - 1;
+        int passengerTo = to[0] - 1;
+        double& toEventTime = active_node[passengerTo].second;
+        //propagated delay
+        //FIXME: the delay is not propagated to edges previously checked
+        for(auto& [delayed_node, propagated_delay]: delayed_nodes) {
+            if (from == delayed_node) {
+                toEventTime += propagated_delay;
+                std::cout << from << " -> " << to << " propagated delay of "  << propagated_delay << " minutes\n";
+                delayed_nodes[to] += propagated_delay;
+                break;
+            }
+        }
+    }
 }
 
 
