@@ -66,7 +66,8 @@ public:
     
 
     void incorporate_delay(std::stringstream& name, IloEnv& env, IloModel& model, IloNumVarArray& B, IloRangeArray& fixed_B);
-    void propagate_delay(std::map<NODE, double>& delayed_nodes) ;
+    void propagate_delay(std::map<NODE, double>& delayed_nodes);
+    void propagate_delay2(NODE delayed_event, std::map<NODE, double>& delayed_nodes);
 
     
     // after solve

@@ -3271,7 +3271,7 @@ void RollingHorizon<Q>::printEventBlock(int node, double time, int& characters_p
 
 template<int Q>
 void RollingHorizon<Q>::incorporate_delay(std::stringstream& name, IloEnv& env, IloModel& model, IloNumVarArray& B, IloRangeArray& fixed_B) {
-    std::map <NODE, double> delayed_nodes;
+    std::map <NODE, double> node_delay;
 
     std::sort(fixed_edges.begin(), fixed_edges.end(),
         [this](const ARC& a, const ARC& b) {
@@ -3292,19 +3292,21 @@ void RollingHorizon<Q>::incorporate_delay(std::stringstream& name, IloEnv& env, 
         NODE to = a[1];
         int passengerFrom = from[0] - 1;
         int passengerTo = to[0] - 1;
-        double& toEventTime = active_node[passengerTo].second;
         
-        propagate_delay(delayed_nodes);
-
         //independend random delay, propagated later
         if (probability == 1 || dis(gen) <= probability) {
-            toEventTime += bv_delay;
-            std::cout << from << " -> " << to << " random delay of " << bv_delay << " minutes\n";
-            delayed_nodes[to] += bv_delay;
+            std::cout << from << " -> " << to << " RANDOM delay of " << bv_delay << " minutes\n";
+            node_delay[to] += bv_delay;
         } else {
-            std::cout << from << " -> " << to << " no (independend) delay\n";               
+            std::cout << from << " -> " << to << " no independend delay\n";               
         }
+        
+        //(to oder delayed_nodes[to]) und delayed_nodes übergeben
+        propagate_delay2(to, node_delay);
 
+        double& toEventTime = active_node[passengerTo].second;
+        toEventTime += node_delay[to];
+        std::cout << "\t" << to << " TOTAL delay of " << node_delay[to] << " minutes\n";
         fixed_B[vmap[a[1]]] = IloRange(env,
                                        active_node[a[1][0]-1].second - epsilon, 
                                        B[vmap[a[1]]], 
@@ -3317,6 +3319,7 @@ void RollingHorizon<Q>::incorporate_delay(std::stringstream& name, IloEnv& env, 
 }
 
 template<int Q>
+//nur a und delayed_nodes als Parameter, 
 void RollingHorizon<Q>::propagate_delay(std::map<NODE, double>& delayed_nodes) {
     for (const auto& fixed_arc: fixed_edges)
     {
@@ -3327,6 +3330,10 @@ void RollingHorizon<Q>::propagate_delay(std::map<NODE, double>& delayed_nodes) {
         double& toEventTime = active_node[passengerTo].second;
         //propagated delay
         //FIXME: the delay is not propagated to edges previously checked
+
+        //Kann vermutlich entfernt werden
+        //Ersetzung durch Aufruf von entsprechender Stelle in Hashmap 
+        //delayed_nodes[to] += delayed_nodes[from];
         for(auto& [delayed_node, propagated_delay]: delayed_nodes) {
             if (from == delayed_node) {
                 toEventTime += propagated_delay;
@@ -3334,6 +3341,26 @@ void RollingHorizon<Q>::propagate_delay(std::map<NODE, double>& delayed_nodes) {
                 delayed_nodes[to] += propagated_delay;
                 break;
             }
+        }
+    }
+}
+
+template<int Q>
+//nur a und delayed_nodes als Parameter, 
+void RollingHorizon<Q>::propagate_delay2(NODE delayed_event, std::map<NODE, double>& node_delay) {
+    for (const auto& fixed_arc: fixed_edges)
+    {
+        NODE start_event = fixed_arc[0];
+        NODE dest_event = fixed_arc[1];
+
+        if(start_event == delayed_event) {
+            if(node_delay[delayed_event] == 0) {
+                std::cout << "\t" << start_event << " propagated ZERO delay to " << dest_event << std::endl;
+                return;
+            }
+            std::cout << "\t" << start_event << " propagated delay to " << dest_event << " of "  << node_delay[delayed_event] << " minutes" << std::endl;
+            node_delay[dest_event] += node_delay[delayed_event];
+            return;
         }
     }
 }
