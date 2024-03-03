@@ -65,17 +65,24 @@ public:
     void update_milp(bool accept_all, bool consider_excess_ride_time, DARP& D, DARPGraph<S>& G, IloEnv& env, IloModel& model, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloNumVarArray& d, IloNumVar& d_max, IloRangeArray& accept, IloRangeArray& serve_accepted, IloRangeArray& time_window_ub, IloRangeArray& time_window_lb, IloArray<IloRangeArray>& max_ride_time, IloRangeArray& travel_time, IloRangeArray& flow_preservation, IloRangeArray& excess_ride_time, IloRangeArray& fixed_B, IloRangeArray& fixed_x, IloRangeArray& pickup_delay, IloRange& num_tours, IloObjective& obj, IloExpr& obj1, IloExpr& obj3, const std::array<double,3>& w = {1,60,0.1});
     
 
-    void incorporate_delay(std::stringstream& name, IloEnv& env, IloModel& model, IloNumVarArray& B, IloRangeArray& fixed_B);
-    void propagate_delay(std::map<NODE, double>& delayed_nodes);
-    void propagate_delay2(NODE delayed_event, std::map<NODE, double>& delayed_nodes);
 
-    
+    void incorporate_delay(std::stringstream& name, IloEnv& env, IloModel& model, IloNumVarArray& B, IloRangeArray& fixed_B);
+    void propagate_delay(NODE delayed_event, std::map<NODE, double>& node_delay);
+
     // after solve
     void update_graph_sets(bool consider_excess_ride_time, DARPGraph<S>& G, IloNumArray& B_val, IloNumArray& d_val, IloIntArray& p_val, IloIntArray& x_val); // only for num_milps > 1
     void get_solution_values(bool consider_excess_ride_time, DARP& D, DARPGraph<S>& G, IloCplex& cplex, IloNumArray& B_val, IloNumArray& d_val, IloIntArray& p_val, IloIntArray& x_val, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloNumVarArray& d, IloRangeArray& fixed_B);
-    void print_routes(DARP& D, DARPGraph<S>& G, IloNumArray& B_val, IloIntArray& x_val, IloRangeArray& B);
-    void printHeader(int num_milps);
-    void printEventBlock(int node, double time, int &characters_printed, int terminal_width);
+    void traverse_routes(DARP& D, DARPGraph<S>& G, IloNumArray& B_val, IloIntArray& x_val, IloRangeArray& B);
+    int get_vehicle_load(IloIntArray& x_val, DARPGraph<S>& G, int vehicle);
+    
+
+    std::string get_printable_header(int num_milps, double time);
+    std::string get_printable_event_block(int node, double time, int &characters_printed, int terminal_width);
+    int get_current_terminal_width();
+    
+    void printNode(std::string before, std::string color, NODE node, std::string after);
+    //void printEvent(int node, double time, std::string color, int &characters_printed, int terminal_width);
+    
 
     // complete routine
     std::array<double,3> solve(bool accept_all, bool consider_excess_ride_time, bool dynamic, bool heuristic, DARP& D, DARPGraph<S>& G, const std::array<double,3>& w = {1,60,0.1});

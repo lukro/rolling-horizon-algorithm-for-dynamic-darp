@@ -119,7 +119,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
         }
         tusnr = tusnr - (tunnr + time_passed);
     
-        printHeader(num_milps);
+        std::cout << get_printable_header(num_milps, time_passed);
 #if VERBOSE 
         std::cout << std::endl << "Time passed [m]: " << time_passed << std::endl;
         sort(D.known_requests.begin(), D.known_requests.end());
@@ -284,7 +284,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
 
                 num_milps++;
                 
-                printHeader(num_milps);
+                std::cout << get_printable_header(num_milps, time_passed);
 #if VERBOSE
                 std::cout << std::endl << "Time passed [m]: " << time_passed << std::endl;
                 sort(D.known_requests.begin(), D.known_requests.end());
@@ -2890,18 +2890,9 @@ void RollingHorizon<Q>::first_milp(bool accept_all, bool consider_excess_ride_ti
 }
 
 template<int Q>
-void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_val, IloIntArray& x_val, IloRangeArray& fixed_B)
+void RollingHorizon<Q>::traverse_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_val, IloIntArray& x_val, IloRangeArray& fixed_B)
 {
-
-    // Get the current terminal width
-    struct winsize w;
-    if (isatty(STDOUT_FILENO)) {
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    } else {
-        // If the output is not a terminal, set a default width
-        w.ws_col = 100;
-    }
-    int terminal_width = w.ws_col;
+    int terminal_width = get_current_terminal_width();
 
     // output solution we have so far
     bool flag;
@@ -2926,7 +2917,7 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
             int characters_printed = 0;
             if (a[0] == G.depot)
             {
-                //std::cout << std::left << setw(STRINGWIDTH) << setfill(' ')  << MANJ_GREEN << "VEHICLE " << route_count+1 << ":" << FORMAT_STOP << std::endl;
+                std::stringstream vehicle_block;
                 b = a;
                 cycle_arcs.erase(std::remove(cycle_arcs.begin(), cycle_arcs.end(), a), cycle_arcs.end());
                 
@@ -2947,6 +2938,8 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                 }
                 // as long as we haven't found the last arc in the dicycle, look for the next arc in the dicycle and
                 // add it to the tour
+
+                int passengers_in_vehicle = 0;
                 while (b[1] != G.depot)
                 {
                     for (const auto& f: cycle_arcs)
@@ -2956,7 +2949,14 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                         {
                             cycle.push_back(f);
 
-                            //printEventBlock(f[0][0], time, characters_printed, terminal_width);
+                            if(time < time_passed) {
+                                if(f[0][0] < n)
+                                    passengers_in_vehicle++;
+                                else
+                                    passengers_in_vehicle--;
+                            }
+
+                            vehicle_block << get_printable_event_block(f[0][0], time, characters_printed, terminal_width);
                             
                             if (f[1] != G.depot)
                             {
@@ -2979,7 +2979,9 @@ void RollingHorizon<Q>::print_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_va
                         }
                     }
                 }
-                //std::cout << std::endl;
+
+                std::cout << MANJ_GREEN << "VEHICLE " << route_count+1 << " (CURRENT LOAD: " << passengers_in_vehicle << " / " << D.veh_capacity << ") \n";
+                std::cout << vehicle_block.str() << std::endl;
 
                 D.route[route_count].end = current;
                 D.next_array[current] = DARPH_DEPOT;
@@ -3098,10 +3100,10 @@ void RollingHorizon<Q>::get_solution_values(bool consider_excess_ride_time, DARP
         }
     }
 
-    print_routes(D, G, B_val, x_val, fixed_B);
+    traverse_routes(D, G, B_val, x_val, fixed_B);
 
     
-    // important: execute function print_routes first to assgin value to D.nodes[i].beginning_service
+    // important: execute function traverse_routes first to assgin value to D.nodes[i].beginning_service
     if (num_milps > 1)
     {
         for (const auto& i: new_requests)
@@ -3207,33 +3209,30 @@ void RollingHorizon<Q>::get_solution_values(bool consider_excess_ride_time, DARP
 
 
 template<int Q>
-void RollingHorizon<Q>::printHeader(int num_milps) {
-    struct winsize w;
-    if (isatty(STDOUT_FILENO)) {
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    } else {
-        // If the output is not a terminal, set a default width
-        w.ws_col = 100;
-    }
-    int terminal_width = w.ws_col;
+std::string RollingHorizon<Q>::get_printable_header(int num_milps, double time) {
+    std::stringstream header;
+    int terminal_width = get_current_terminal_width();
 
-    std::string milp_str = "MILP " + std::to_string(num_milps);
-    int num_dashes = (w.ws_col - milp_str.length()) / 2 - 2; // Subtract 2 for the spaces
+    std::stringstream milp_stream;
+    milp_stream << "MILP " << std::to_string(num_milps) << " at " << std::fixed << std::setprecision(2) << time << " min";
+    int num_dashes = (terminal_width - milp_stream.str().length()) / 2 - 2; // Subtract 2 for the spaces
     std::string dashes = std::string(num_dashes, ' ');
 
-    std::cout << std::endl << WHITE_MANJ_GREEN_BG << dashes << milp_str << dashes;
+    header << std::endl << WHITE_MANJ_GREEN_BG << dashes << milp_stream.str() << dashes;
 
     // If the terminal width is odd and the milp_str length is even (or vice versa), print an extra dash
-    if ((w.ws_col - milp_str.length()) % 2 != 0) { // Subtract 2 for the spaces
+    if ((terminal_width - milp_stream.str().length()) % 2 != 0) { // Subtract 2 for the spaces
         std::cout << " ";
     }
-    std::cout << FORMAT_STOP << std::endl;
+    header << FORMAT_STOP << std::endl;
+    return header.str();
 }
 
 template<int Q>
-void RollingHorizon<Q>::printEventBlock(int node, double time, int& characters_printed, int terminal_width) {
+std::string RollingHorizon<Q>::get_printable_event_block(int node, double time, int& characters_printed, int terminal_width) {
+    std::stringstream ret;
     if (characters_printed + 10 >= terminal_width) {
-        std::cout << std::endl;
+        ret << std::endl;
         characters_printed = 0;
     }
 
@@ -3248,10 +3247,24 @@ void RollingHorizon<Q>::printEventBlock(int node, double time, int& characters_p
 
 
     if (time < time_passed) 
-        std::cout << YELLOW_UNDERLINED << output.str() << WHITE << time_block.str() << "  ";
+        ret << YELLOW_UNDERLINED << output.str() << WHITE << time_block.str() << "  ";
     else 
-        std::cout << WHITE_YELLOW_BG << output.str() << BLACK_YELLOW_BG << time_block.str() << "  ";
+        ret << WHITE_YELLOW_BG << output.str() << BLACK_YELLOW_BG << time_block.str() << "  ";
     characters_printed += 12;  // Add the length of the output block to the counter
+    return ret.str();
+}
+
+template<int Q>
+int RollingHorizon<Q>::get_current_terminal_width() {
+    struct winsize w;
+    if (isatty(STDOUT_FILENO)) {
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    } else {
+        // If the output is not a terminal, set a default width
+        w.ws_col = 100;
+    }
+    return w.ws_col;
+    
 }
 
 
@@ -3278,7 +3291,7 @@ void RollingHorizon<Q>::incorporate_delay(std::stringstream& name, IloEnv& env, 
             return this->active_node[a[1][0]-1].second < this->active_node[b[1][0]-1].second;
         }
     );
-    std::cout << MANJ_GREEN << "Fixed edges: " << FORMAT_STOP << std::endl;
+    std::cout << MANJ_GREEN << "FIXED EDGES: " << FORMAT_STOP << std::endl;
 
     // fix variable B_w for new fixed edges 
     for (const auto& a: fixed_edges)
@@ -3293,34 +3306,64 @@ void RollingHorizon<Q>::incorporate_delay(std::stringstream& name, IloEnv& env, 
         int passengerFrom = from[0] - 1;
         int passengerTo = to[0] - 1;
         
-        //independend random delay, propagated later
         if (probability == 1 || dis(gen) <= probability) {
-            std::cout << from << " -> " << to << " RANDOM delay of " << bv_delay << " minutes\n";
+            printNode("", MANJ_GREEN, from, " -> ");
+            printNode("", MANJ_GREEN, to, " ");
+            std::cout << "RANDOM delay of " << bv_delay << " min\n";
             node_delay[to] += bv_delay;
         } else {
-            std::cout << from << " -> " << to << " no independend delay\n";               
+            printNode("", MANJ_GREEN, from, " -> ");
+            printNode("", MANJ_GREEN, to, " no independent delay\n");
         }
         
         //(to oder delayed_nodes[to]) und delayed_nodes übergeben
-        propagate_delay2(to, node_delay);
+        propagate_delay(to, node_delay);
 
         double& toEventTime = active_node[passengerTo].second;
         toEventTime += node_delay[to];
-        std::cout << "\t" << to << " TOTAL delay of " << node_delay[to] << " minutes\n";
-        fixed_B[vmap[a[1]]] = IloRange(env,
-                                       active_node[a[1][0]-1].second - epsilon, 
-                                       B[vmap[a[1]]], 
-                                       active_node[a[1][0]-1].second + epsilon, 
-                                       name.str().c_str());
         
-        model.add(fixed_B[vmap[a[1]]]);
+        printNode("\t", MANJ_GREEN, to, " TOTAL delay of ");
+        std::cout << node_delay[to] << " min\n";
+
+        fixed_B[vmap[to]] = IloRange(env,
+                                    toEventTime - epsilon, 
+                                    B[vmap[to]], 
+                                    toEventTime + epsilon, 
+                                    name.str().c_str());
+        
+        model.add(fixed_B[vmap[to]]);
         name.str("");  
     }
 }
 
 template<int Q>
 //nur a und delayed_nodes als Parameter, 
-void RollingHorizon<Q>::propagate_delay(std::map<NODE, double>& delayed_nodes) {
+void RollingHorizon<Q>::propagate_delay(NODE delayed_event, std::map<NODE, double>& node_delay) {
+    for (const auto& fixed_arc: fixed_edges)
+    {
+        NODE start_event = fixed_arc[0];
+        NODE dest_event = fixed_arc[1];
+
+        if(start_event == delayed_event) {
+
+            if(node_delay[delayed_event] == 0) {
+                printNode("\t", MANJ_GREEN, start_event, " propagated ZERO delay to ");
+                printNode("", MANJ_GREEN, dest_event, "\n");
+                return;
+            }
+
+            printNode("\t", MANJ_GREEN, start_event, " propagated delay of ");
+            std::cout << node_delay[delayed_event] << " min to ";
+            printNode("", MANJ_GREEN, dest_event, "\n");
+
+            node_delay[dest_event] += node_delay[delayed_event];
+            return;
+        }
+    }
+}
+/*Alternative mit späterem Aufruf 
+template<int Q>
+void RollingHorizon<Q>::propagate_delay_after_fixing(std::map<NODE, double>& delayed_nodes) {
     for (const auto& fixed_arc: fixed_edges)
     {
         NODE from = fixed_arc[0];
@@ -3328,43 +3371,22 @@ void RollingHorizon<Q>::propagate_delay(std::map<NODE, double>& delayed_nodes) {
         int passengerFrom = from[0] - 1;
         int passengerTo = to[0] - 1;
         double& toEventTime = active_node[passengerTo].second;
-        //propagated delay
-        //FIXME: the delay is not propagated to edges previously checked
 
-        //Kann vermutlich entfernt werden
-        //Ersetzung durch Aufruf von entsprechender Stelle in Hashmap 
-        //delayed_nodes[to] += delayed_nodes[from];
         for(auto& [delayed_node, propagated_delay]: delayed_nodes) {
             if (from == delayed_node) {
                 toEventTime += propagated_delay;
-                std::cout << from << " -> " << to << " propagated delay of "  << propagated_delay << " minutes\n";
+                std::cout << from << " -> " << to << " propagated delay of "  << propagated_delay << " min\n";
                 delayed_nodes[to] += propagated_delay;
                 break;
             }
         }
     }
-}
+}*/
 
 template<int Q>
-//nur a und delayed_nodes als Parameter, 
-void RollingHorizon<Q>::propagate_delay2(NODE delayed_event, std::map<NODE, double>& node_delay) {
-    for (const auto& fixed_arc: fixed_edges)
-    {
-        NODE start_event = fixed_arc[0];
-        NODE dest_event = fixed_arc[1];
-
-        if(start_event == delayed_event) {
-            if(node_delay[delayed_event] == 0) {
-                std::cout << "\t" << start_event << " propagated ZERO delay to " << dest_event << std::endl;
-                return;
-            }
-            std::cout << "\t" << start_event << " propagated delay to " << dest_event << " of "  << node_delay[delayed_event] << " minutes" << std::endl;
-            node_delay[dest_event] += node_delay[delayed_event];
-            return;
-        }
-    }
+void RollingHorizon<Q>::printNode(std::string before, std::string color, NODE node, std::string after) {
+    std::cout << before << color << node << FORMAT_STOP << after;
 }
-
 
 template class RollingHorizon<3>;
 template class RollingHorizon<6>;
