@@ -23,7 +23,7 @@ There are two binaries <br>
 ### Instances
  Availabe instances are:
  *no6 (short for data/WSW/no_116_6_req.txt); dynamic instances
- *static benchmark instances from [Event-based MILP for DARP](https://git.uni-wuppertal.de/dgaul/event-based-milp-for-darp); These run in instance_mode=1 which transform them to a dynamic instances
+ *static benchmark instances from [Event-based MILP for DARP](https://git.uni-wuppertal.de/dgaul/event-based-milp-for-darp); These run in instance_mode=1 which transforms them to dynamic instances. <br><br>
  Example call:
  ```
  ./bin/darp_cplex_6 no6 [-PARAMETERS]
