@@ -2987,7 +2987,7 @@ void RollingHorizon<Q>::traverse_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B
                     }
                 }
 
-                std::cout << MANJ_GREEN << "VEHICLE " << route_count+1 << " (CURRENT LOAD: " << passengers_in_vehicle << " / " << D.veh_capacity << ") \n" << FORMAT_STOP;
+                std::cout << MANJ_GREEN << "VEHICLE " << route_count+1 << " (CURRENT LOAD: " << passengers_in_vehicle << "/" << D.veh_capacity << ") \n" << FORMAT_STOP;
                 std::cout << vehicle_block.str() << std::endl;
 
                 D.route[route_count].end = current;

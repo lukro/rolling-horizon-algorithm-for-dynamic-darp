@@ -93,7 +93,7 @@ public:
     // w2 = 60 weight rejected users 
     // w3 = 0.1 weight excess ride time 
 
-
+    //Modified part
     void print_node(std::string before, std::string color, NODE node, std::string after, int n);
     std::string get_printable_header(int num_milps, double time);
     std::string get_printable_event_block(int node, double time, int &characters_printed, int terminal_width);

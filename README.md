@@ -36,7 +36,14 @@ Example:
 ./bin/darp_cplex_6 no6 -p 0.1 -nd 0.75
 ```
 
- ## Test instances (see original repository)
+## Output 
+The current configuration displays every vehicles events history and (projected) future events (orange/yellow marked). All events look like this
+```
++|-[PASSENGER_NR] [TIME]
+```
+Where the time format is mm:ss
+
+## Test instances (see original repository)
  As test instances two different file formats are accepted:<br>
  - First format (this refers to instance_mode = 1): Test instance consists of one file.  <br>
     <pre>

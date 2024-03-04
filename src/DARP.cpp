@@ -99,11 +99,6 @@ void DARP::read_file(std::string infile, std::string data_directory, std::string
     int i, j;
     double val;
 
-    // experimental part
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::gamma_distribution<double> gamma(2, 0.1);
-
     std::ifstream file;
     std::string line;
     file.open(infile.c_str(), std::ios_base::in);
