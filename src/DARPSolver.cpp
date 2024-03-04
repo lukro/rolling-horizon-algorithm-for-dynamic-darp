@@ -375,7 +375,7 @@ bool DARPSolver:: eight_step(DARP& D, DARPRoute& path)
                         }
                         else
                         {
-q                            pred = D.pred_array[pred];
+                            pred = D.pred_array[pred];
                         }
                     }
                 }
