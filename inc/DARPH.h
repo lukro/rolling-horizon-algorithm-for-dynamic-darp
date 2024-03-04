@@ -14,17 +14,6 @@
 #define DARPH_EPSILON         1E-5
 #define STRINGWIDTH           8
 
-// ANSI color codes
-#define FORMAT_STOP             "\033[0m"
-#define WHITE                   "\033[37m"
-#define MANJ_GREEN              "\033[1m\033[38;2;22;160;133m"
-#define MANJ_GREEN_BG           "\033[48;2;22;160;133m"
-#define YELLOW_UNDERLINED       "\033[33m"  
-#define WHITE_YELLOW_BG         "\033[1;37m\033[43m"
-#define WHITE_MANJ_GREEN_BG     "\033[1;37m\033[48;2;22;160;133m"
-#define BLACK_YELLOW_BG         "\033[0;30m\033[43m"
-
-
 #include <stdarg.h> // for va_list, va_start() and va_end() 
 #include <stdio.h> // für fprintf
 #include <vector> // event-based graph
@@ -41,13 +30,6 @@
 #include <fstream> // to read file while ignoring whitespaces
 #include <string> 
 #include <cstring> // strcpy()
-
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <map>
-
-#include <fstream>
-#include <iostream>
 
 #include "DARPUtils.h"
 #include "DARPNode.h"
