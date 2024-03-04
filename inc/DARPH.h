@@ -40,5 +40,7 @@
 #include "DARPGraph.h"
 #include "DARPSolver.h"
 #include "RollingHorizon.h"
+#include "TerminalOutput.h"
+#include "DelayIntegration.h"
 
 #endif

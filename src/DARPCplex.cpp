@@ -1,6 +1,5 @@
 #include "DARPH.h"
 #include "RollingHorizon.h"
-#include "LukroContribution.h"
 
 template <int Q>
 std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_excess_ride_time, bool dynamic, bool heuristic, DARP& D, DARPGraph<Q>& G, const std::array<double,3>& w)

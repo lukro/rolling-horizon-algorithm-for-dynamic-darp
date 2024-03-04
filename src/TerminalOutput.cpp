@@ -1,8 +1,9 @@
 #include "DARPH.h"
 #include "RollingHorizon.h"
+#include "TerminalOutput.h"
 
-template<int Q>
-std::string RollingHorizon<Q>::get_printable_header(int num_milps, double time) {
+
+std::string TerminalOutput::get_printable_header(int num_milps, double time) {
     std::stringstream header;
     int terminal_width = get_current_terminal_width();
 
@@ -21,8 +22,7 @@ std::string RollingHorizon<Q>::get_printable_header(int num_milps, double time) 
     return header.str();
 }
 
-template<int Q>
-std::string RollingHorizon<Q>::get_printable_event_block(int node, double time, int& characters_printed, int terminal_width) {
+std::string TerminalOutput::get_printable_event_block(int node, double time, double time_passed, int& characters_printed, int terminal_width, int n) {
     std::stringstream output;
     if (characters_printed + 14 > terminal_width) {
         output << std::endl;
@@ -47,8 +47,7 @@ std::string RollingHorizon<Q>::get_printable_event_block(int node, double time, 
     return output.str();
 }
 
-template<int Q>
-int RollingHorizon<Q>::get_current_terminal_width() {
+int TerminalOutput::get_current_terminal_width() {
     struct winsize w;
     if (isatty(STDOUT_FILENO)) {
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -60,8 +59,7 @@ int RollingHorizon<Q>::get_current_terminal_width() {
     
 }
 
-template<int Q>
-void RollingHorizon<Q>::print_node(std::string before, std::string color, NODE node, std::string after, int n) {
+void TerminalOutput::print_node(std::string before, std::string color, NODE node, std::string after, int n) {
     std::string node_string;
     if(node[0] < n)
         node_string = "(+" + std::to_string(node[0]) + ",";
@@ -80,8 +78,7 @@ void RollingHorizon<Q>::print_node(std::string before, std::string color, NODE n
     std::cout << before << color << node_string << FORMAT_STOP << after;
 }
 
-template<int Q>
-std::string RollingHorizon<Q>::convertDoubleToMinutes(double time) {
+std::string TerminalOutput::convertDoubleToMinutes(double time) {
     std::stringstream stream;
     int minutes = time;
     int seconds = (time - minutes) * 60;

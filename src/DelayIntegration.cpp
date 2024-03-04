@@ -1,13 +1,22 @@
 #include "DARPH.h"
-#include "RollingHorizon.h"
+#include "DelayIntegration.h"
 
-template<int Q>
-void RollingHorizon<Q>::incorporate_delay(std::stringstream& name, IloEnv& env, IloModel& model, IloNumVarArray& B, IloRangeArray& fixed_B) {
+using namespace TerminalOutput;
+
+void DelayIntegration::incorporate_delay(std::stringstream& name,
+                                 IloEnv& env, 
+                                 IloModel& model, 
+                                 IloNumVarArray& B, 
+                                 IloRangeArray& fixed_B, 
+                                 std::vector<ARC> fixed_edges,
+                                 std::pair<NODE,double>* active_node
+                                 int n) 
+{
     std::map <NODE, double> node_delay;
 
     std::sort(fixed_edges.begin(), fixed_edges.end(),
-        [this](const ARC& a, const ARC& b) {
-            return this->active_node[a[1][0]-1].second < this->active_node[b[1][0]-1].second;
+        [active_node](const ARC& a, const ARC& b) {
+            return active_node[a[1][0]-1].second < active_node[b[1][0]-1].second;
         }
     );
     std::cout << MANJ_GREEN << "FIXED EDGES: " << FORMAT_STOP << std::endl;
@@ -57,7 +66,7 @@ void RollingHorizon<Q>::incorporate_delay(std::stringstream& name, IloEnv& env, 
 
 template<int Q>
 //nur a und delayed_nodes als Parameter, 
-void RollingHorizon<Q>::propagate_delay(NODE delayed_event, std::map<NODE, double>& node_delay) {
+void RollingHorizon<Q>::propagate_delay(NODE delayed_event, std::map<NODE, double>& node_delay, std::vector<ARC> fixed_edges) {
     for (const auto& fixed_arc: fixed_edges)
     {
         NODE start_event = fixed_arc[0];
