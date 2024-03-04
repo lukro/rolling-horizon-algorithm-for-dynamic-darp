@@ -9,17 +9,18 @@ For details of the main rolling-horizon algorithm and implementation please refe
 
  ## Modifications
  **The modifications are currently under review**
- * Add possibility to generate randomized delays during MILP iteration; Currently only fixed delay and probability given as parameters are possible.
- * Revised terminal output putting the focus on passenger flow inside the vehicles; Using colors and scaling with terminal window size; Tested in /bin/bash and Z shell
+ * Add possibility to generate randomized delays during MILP iteration; Currently only fixed delay and probability given as parameters are possible
+ * Revised terminal output laying the focus on passenger flow inside the vehicles; Using colors and scaling with terminal window size; Tested in /bin/bash and Z shell
 
  ## Compilation
  Change the location of your CPLEX directories in the Makefile first. Compile the project using "make". 
 
- ## Usage
+## Usage
 There are two binaries <br>
  ./bin/darp_cplex_3<br>
  ./bin/darp_cplex_6<br>
  to choose between normal cabs (Q=3) and ridepooling cabs (Q=6). 
+ 
 ### Instances
  Availabe instances are:
  *no6 (short for data/WSW/no_116_6_req.txt); dynamic instances
@@ -28,6 +29,7 @@ There are two binaries <br>
  ```
  ./bin/darp_cplex_6 no6 [-PARAMETERS]
 ```
+
  ### Parameters (only tested for Q=6)
 * -p or --probability: Probability of a delay occuring during edge fixation in the range [0..1]
 * -nd or --node-delay: delay in minutes as double value, e.g. 30 seconds is 0.5
@@ -37,11 +39,11 @@ Example:
 ```
 
 ## Output 
-The current configuration displays every vehicles events history and (projected) future events (orange/yellow marked). All events look like this
+The current configuration displays every vehicles events history and (projected) future events (orange/yellow marked). All events have this format:
 ```
 +|-[PASSENGER_NR] [TIME]
 ```
-Where the time format is mm:ss
+Where the time is given in mm:ss
 
 ## Test instances (see original repository)
  As test instances two different file formats are accepted:<br>
@@ -59,29 +61,7 @@ Where the time format is mm:ss
     8   3.904  -5.261   3   1    0 1440
     9   7.976  -9.000   3   1  276  291
     10  -2.610   0.039   3   1   32   47
-    11   4.487   7.142   3   1  115  130
-    12   8.938  -4.388   3   1   14   29
-    13  -4.172  -9.096   3   1  198  213
-    14   7.835  -9.269   3   1  160  175
-    15   2.792  -7.944   3   1  180  195
-    16   5.212   9.271   3   1  366  381
-    17   6.687   6.731   3  -1  402  417
-    18  -2.192  -9.210   3  -1  322  337
-    19  -1.061   8.752   3  -1  179  194
-    20   6.883   0.882   3  -1  138  153
-    21   5.586  -1.554   3  -1   82   97
-    22  -9.865   1.398   3  -1   49   64
-    23  -9.800   5.697   3  -1  400  415
-    24   1.271   1.018   3  -1  298  313
-    25   4.404  -1.952   3  -1    0 1440
-    26   0.673   6.283   3  -1    0 1440
-    27   7.032   2.808   3  -1    0 1440
-    28  -0.694  -7.098   3  -1    0 1440
-    29   3.763  -7.269   3  -1    0 1440
-    30   6.634  -7.426   3  -1    0 1440
-    31  -9.450   3.792   3  -1    0 1440
-    32  -8.819  -4.749   3  -1    0 1440
-    33   0.000   0.000   0   0    0  48
+    ...
     </pre>
     
     First line corresponds to: K 2n T Q L_i, where L_i = 30 for all i=1,...,n<br>
@@ -109,22 +89,7 @@ Where the time format is mm:ss
         0 0.0 0 0.0 840.0 840.0
         1 0.75 1 126.0 151.0 22.33
         2 0.75 1 216.0 241.0 15.85
-        3 0.75 1 290.0 315.0 18.46
-        4 0.75 1 364.0 389.0 21.03
-        5 0.75 1 381.0 406.0 20.83
-        6 0.75 3 454.0 479.0 18.02
-        7 0.75 1 494.0 519.0 22.49
-        8 0.75 1 534.0 559.0 25.85
-        9 0.75 1 546.0 571.0 16.32
-        10 0.75 1 546.0 571.0 18.02
         ...
-        500 0.75 -2 564.62 599.62 15.87
-        501 0.75 -1 580.49 615.49 16.74
-        502 0.75 -1 609.09 644.09 16.34
-        503 0.75 -1 718.14 753.14 14.39
-        504 0.75 -1 728.62 763.62 17.87
-        505 0.75 -1 775.54 810.54 14.79
-        506 0.75 -1 812.38 840.0 27.35
         507 0.75 -1 833.89 840.0 16.14
         508 0.75 -1 834.62 840.0 15.87
         509 0 0 0 840 840
