@@ -3,7 +3,7 @@
  ## Background
 This is a fork of [Rolling Horizon Algorithm for the dynamic DARP](https://git.uni-wuppertal.de/dgaul/rolling-horizon-algorithm-for-dynamic-darp), which is based on: <br>
 Gaul, Klamroth, and Stiglmayr, 2021. Solving the dynamic dial-a-ride problem using a rolling-horizon event-based graph; https://doi.org/10.4230/OASICS.ATMOS.2021.8.<br>
-Originally licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
+Original License: <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
 
 For details of the main rolling-horizon algorithm and implementation please refer to the above reference. <br>
 
