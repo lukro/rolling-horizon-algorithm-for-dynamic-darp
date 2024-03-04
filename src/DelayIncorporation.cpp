@@ -1,7 +1,7 @@
 #include "DARPH.h"
 #include "RollingHorizon.h"
 
- template<int Q>
+template<int Q>
 void RollingHorizon<Q>::incorporate_delay(std::stringstream& name, IloEnv& env, IloModel& model, IloNumVarArray& B, IloRangeArray& fixed_B) {
     std::map <NODE, double> node_delay;
 
@@ -26,13 +26,13 @@ void RollingHorizon<Q>::incorporate_delay(std::stringstream& name, IloEnv& env, 
         int passengerTo = to[0] - 1;
         
         if (probability == 1 || dis(gen) <= probability) {
-            printNode("", MANJ_GREEN, from, " -> ");
-            printNode("", MANJ_GREEN, to, " ");
-            std::cout << "RANDOM delay of " << bv_delay << " min\n";
+            print_node("", MANJ_GREEN, from, " -> ", n);
+            print_node("", MANJ_GREEN, to, " ", n);
+            std::cout << "RANDOM delay of " << convertDoubleToMinutes(bv_delay) << " min\n";
             node_delay[to] += bv_delay;
         } else {
-            printNode("", MANJ_GREEN, from, " -> ");
-            printNode("", MANJ_GREEN, to, " no independent delay\n");
+            print_node("", MANJ_GREEN, from, " -> ", n);
+            print_node("", MANJ_GREEN, to, " no independent delay\n", n);
         }
         
         //(to oder delayed_nodes[to]) und delayed_nodes übergeben
@@ -41,8 +41,8 @@ void RollingHorizon<Q>::incorporate_delay(std::stringstream& name, IloEnv& env, 
         double& toEventTime = active_node[passengerTo].second;
         toEventTime += node_delay[to];
         
-        printNode("\t", MANJ_GREEN, to, " TOTAL delay of ");
-        std::cout << node_delay[to] << " min\n";
+        print_node("\t", MANJ_GREEN, to, " TOTAL delay of ", n);
+        std::cout << convertDoubleToMinutes(node_delay[to]) << " min\n";
 
         fixed_B[vmap[to]] = IloRange(env,
                                     toEventTime - epsilon, 
@@ -66,14 +66,14 @@ void RollingHorizon<Q>::propagate_delay(NODE delayed_event, std::map<NODE, doubl
         if(start_event == delayed_event) {
 
             if(node_delay[delayed_event] == 0) {
-                printNode("\t", MANJ_GREEN, start_event, " propagated ZERO delay to ");
-                printNode("", MANJ_GREEN, dest_event, "\n");
+                print_node("\t", MANJ_GREEN, start_event, " propagated ZERO delay to ", n);
+                print_node("", MANJ_GREEN, dest_event, "\n", n);
                 return;
             }
 
-            printNode("\t", MANJ_GREEN, start_event, " propagated delay of ");
+            print_node("\t", MANJ_GREEN, start_event, " propagated delay of ", n);
             std::cout << node_delay[delayed_event] << " min to ";
-            printNode("", MANJ_GREEN, dest_event, "\n");
+            print_node("", MANJ_GREEN, dest_event, "\n", n);
 
             node_delay[dest_event] += node_delay[delayed_event];
             return;
@@ -101,3 +101,6 @@ void RollingHorizon<Q>::propagate_delay_after_fixing(std::map<NODE, double>& del
         }
     }
 }*/
+
+template class RollingHorizon<3>;
+template class RollingHorizon<6>;

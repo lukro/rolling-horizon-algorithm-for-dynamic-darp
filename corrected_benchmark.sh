@@ -4,12 +4,13 @@ max_processes=4
 
 dir="output/final_benchmark"
 
-for delay in $(LANG=en_US seq 0.1 0.1 0.5)
+for run in $(seq 21 50)
 do
-    for p in $(LANG=en_US seq 0.1 0.1 1)
+    for delay in $(LANG=en_US seq 0.1 0.1 0.5)
     do
-        for run in $(seq 16 20)
+        for p in $(LANG=en_US seq 0.1 0.1 1)
         do
+
             output_file="${dir}/${delay}min${p}pr_run${run}.txt"
             if [ ! -f "$output_file" ]; then
                 echo " ./bin/darp_cplex_6 no6 -p $p --node-delay $delay &> $output_file"

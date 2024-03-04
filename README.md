@@ -1,6 +1,6 @@
 # Rolling-Horizon Algorithm for dynamic DARP
+This is a fork of https://git.uni-wuppertal.de/dgaul/rolling-horizon-algorithm-for-dynamic-darp
 
-This is the C++ implementation of the rolling-horizon algorithm for the dynamic Dial-a-Ride Problem using Cplex. The algorithm was proposed in<br>
 
 Gaul, Klamroth, and Stiglmayr, 2021. Solving the dynamic dial-a-ride problem using a rolling-horizon event-based graph.<br> 
 21st Symposium on Algorithmic Approaches for Transportation Modelling, Optimization, and Systems (ATMOS 2021). Schloss Dagstuhl - Leibniz-Zentrum für Informatik.<br>
@@ -11,8 +11,24 @@ Any feedback is welcome, please send an email to gaul@math.uni-wuppertal.de.<br>
 
  ## Compilation
 
- Change the location of your Cplex directories in the Makefile first. Compile the project using "make". 
- 
+ Change the location of your CPLEX directories in the Makefile first. Compile the project using "make". 
+
+ ## Running an instance
+
+There are two binaries <br>
+ ./bin/darp_cplex_3<br>
+ ./bin/darp_cplex_6<br>
+ to choose between normal cabs (Q=3) and ridepooling cabs (Q=6). Usage: <br>
+
+ ./bin/darp_cplex_6 instance_name e.g. ./bin/darp_milp_6 no6
+
+ ## Parameters (only tested for Q=6)
+
+* -p or --probability: Probability of a delay occuring during edge fixation in the range [0..1]
+* -nd or --node-delay: delay in minutes as double value, e.g. 30 seconds is 0.5
+Example:
+./bin/darp_cplex_6 no6 -p 0.1 -nd 0.75
+
 
  ## Test instances 
 
@@ -109,29 +125,9 @@ Any feedback is welcome, please send an email to gaul@math.uni-wuppertal.de.<br>
         Column 4 and 5: time window<br>
         Column 6: ride time L_i<br>
 
-
-
 This repository contains a test instance of the second type in the directory data/WSW. In this instance a vehicle capacity of Q=6 is assumed.
 
-
- ## Running an instance
-
-There are two binaries <br>
- ./bin/darp_cplex_3<br>
- ./bin/darp_cplex_6<br>
- to choose between normal cabs (Q=3) and ridepooling cabs (Q=6). Usage: <br>
-
- ./bin/darp_cplex_6 instance_name e.g. ./bin/darp_milp_6 no_011_6_req<br>
- 
-
- 
- 
-
- ## Acknowledgement
-
- This work was partially supported by the state of North Rhine-Westphalia (Germany) within the project “bergisch.smart.mobility”.<br>
-
- 
+    
  ## Authors
 
  The author of the code is Daniela Gaul (gaul@math.uni-wuppertal.de).
