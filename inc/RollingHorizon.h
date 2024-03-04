@@ -75,13 +75,13 @@ public:
     // w3 = 0.1 weight excess ride time 
 
 
-    static void print_node(std::string before, std::string color, NODE node, std::string after, int n);
-    std::string get_printable_header(int num_milps, double time);
-    std::string get_printable_event_block(int node, double time, int &characters_printed, int terminal_width);
-    int get_current_terminal_width();
-    std::string convertDoubleToMinutes(double time);
+    // void print_node(std::string before, std::string color, NODE node, std::string after, int n);
+    // std::string get_printable_header(int num_milps, double time);
+    // std::string get_printable_event_block(int node, double time, int &characters_printed, int terminal_width);
+    // int get_current_terminal_width();
+    // std::string convertDoubleToMinutes(double time);
 
-    void incorporate_delay(std::stringstream& name, IloEnv& env, IloModel& model, IloNumVarArray& B, IloRangeArray& fixed_B);
-    void propagate_delay(NODE delayed_event, std::map<NODE, double> &node_delay);
+    // void incorporate_delay(std::stringstream& name, IloEnv& env, IloModel& model, IloNumVarArray& B, IloRangeArray& fixed_B);
+    // void propagate_delay(NODE delayed_event, std::map<NODE, double> &node_delay);
 };
 #endif
