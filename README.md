@@ -1,38 +1,42 @@
 # Delay management in the dynamic Dial-a-Ride-Problem
 
  ## Background
-This is a fork of [Rolling Horizon Algorithm for the dynamic DARP](https://git.uni-wuppertal.de/dgaul/rolling-horizon-algorithm-for-dynamic-darp), which is based on:
-Gaul, Klamroth, and Stiglmayr, 2021. Solving the dynamic dial-a-ride problem using a rolling-horizon event-based graph.<br> 
-https://doi.org/10.4230/OASICS.ATMOS.2021.8.<br>
-For details of the rolling-horizon algorithm and implementation please refer to the above reference. <br>
+This is a fork of [Rolling Horizon Algorithm for the dynamic DARP](https://git.uni-wuppertal.de/dgaul/rolling-horizon-algorithm-for-dynamic-darp), which is based on: <br>
+Gaul, Klamroth, and Stiglmayr, 2021. Solving the dynamic dial-a-ride problem using a rolling-horizon event-based graph; https://doi.org/10.4230/OASICS.ATMOS.2021.8.<br>
+Original License: <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
+
+For details of the main rolling-horizon algorithm and implementation please refer to the above reference. <br>
 
  ## Modifications
- *The modifications are currently under review*
+ **The modifications are currently under review**
  * Add possibility to generate randomized delays during MILP iteration; Currently only fixed delay and probability given as parameters are possible.
  * Revised terminal output putting the focus on passenger flow inside the vehicles; Using colors and scaling with terminal window size; Tested in /bin/bash and Z shell
 
  ## Compilation
  Change the location of your CPLEX directories in the Makefile first. Compile the project using "make". 
 
- ## Running an instance
-
+ ## Usage
 There are two binaries <br>
  ./bin/darp_cplex_3<br>
  ./bin/darp_cplex_6<br>
- to choose between normal cabs (Q=3) and ridepooling cabs (Q=6). Usage: <br>
-
- ./bin/darp_cplex_6 instance_name e.g. ./bin/darp_milp_6 no6
-
+ to choose between normal cabs (Q=3) and ridepooling cabs (Q=6). 
+### Instances
+ Availabe instances are:
+ *no6 (short for data/WSW/no_116_6_req.txt); dynamic instances
+ *static benchmark instances from [Event-based MILP for DARP](https://git.uni-wuppertal.de/dgaul/event-based-milp-for-darp); These run in instance_mode=1 which transform them to a dynamic instances
+ Example call:
+ ```
+ ./bin/darp_cplex_6 no6 [-PARAMETERS]
+```
  ### Parameters (only tested for Q=6)
-
 * -p or --probability: Probability of a delay occuring during edge fixation in the range [0..1]
 * -nd or --node-delay: delay in minutes as double value, e.g. 30 seconds is 0.5
 Example:
+```
 ./bin/darp_cplex_6 no6 -p 0.1 -nd 0.75
-
+```
 
  ## Test instances (see original repository)
-
  As test instances two different file formats are accepted:<br>
  - First format (this refers to instance_mode = 1): Test instance consists of one file.  <br>
     <pre>
@@ -130,15 +134,11 @@ This repository contains a test instance of the second type in the directory dat
 
     
  ## Authors
-
- The main author of the code is Daniela Gaul (gaul@math.uni-wuppertal.de).
- It was developed at Bergische Universität Wuppertal with her PhD advisors Kathrin Klamroth and Michael Stiglmayr.
+ The main author of the code is Daniela Gaul (gaul@math.uni-wuppertal.de). It was developed at Bergische Universität Wuppertal with her PhD advisors Kathrin Klamroth and Michael Stiglmayr.
 
  The modifications were contributed by Lukas Kröger (LukasPKroeger@web.de).
  
- ## License
- 
-<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
+
 
 
 

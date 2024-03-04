@@ -1,6 +1,6 @@
 #include "DARPH.h"
 
-
+/*Currently not usable due to memory management issues in the underlying code
 void runBenchmark(double node_arrival_delay, double probability, int run) {
     std::string instance = "no_011_6_req";
     std::string data_directory = "data/WSW/"; 
@@ -51,6 +51,7 @@ void benchmark() {
         }
     }
 }
+*/
 
 int main(int argc,char* argv[]) 
 {
@@ -66,7 +67,7 @@ int main(int argc,char* argv[])
         instance = "no_011_6_req";
         data_directory = "data/WSW/"; 
     } else if (inst == "-bm") {
-        benchmark();
+        //benchmark();
         return 0;
     } else {
         instance = argv[1];
