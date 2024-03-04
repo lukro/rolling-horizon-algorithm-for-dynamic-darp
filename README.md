@@ -1,35 +1,38 @@
 # Delay management in the dynamic Dial-a-Ride-Problem
 
  ## Background
-This is a fork of [Rolling Horizon Algorithm for the dynamic DARP](https://git.uni-wuppertal.de/dgaul/rolling-horizon-algorithm-for-dynamic-darp), which is based on:
+This is a fork of [Rolling Horizon Algorithm for the dynamic DARP](https://git.uni-wuppertal.de/dgaul/rolling-horizon-algorithm-for-dynamic-darp), which is based on: <br>
 Gaul, Klamroth, and Stiglmayr, 2021. Solving the dynamic dial-a-ride problem using a rolling-horizon event-based graph.<br> 
 https://doi.org/10.4230/OASICS.ATMOS.2021.8.<br>
 For details of the rolling-horizon algorithm and implementation please refer to the above reference. <br>
 
  ## Modifications
- *The modifications are currently under review*
+ **The modifications are currently under review**
  * Add possibility to generate randomized delays during MILP iteration; Currently only fixed delay and probability given as parameters are possible.
  * Revised terminal output putting the focus on passenger flow inside the vehicles; Using colors and scaling with terminal window size; Tested in /bin/bash and Z shell
 
  ## Compilation
  Change the location of your CPLEX directories in the Makefile first. Compile the project using "make". 
 
- ## Running an instance
-
+ ## Usage
 There are two binaries <br>
  ./bin/darp_cplex_3<br>
  ./bin/darp_cplex_6<br>
- to choose between normal cabs (Q=3) and ridepooling cabs (Q=6). Usage: <br>
-
- ./bin/darp_cplex_6 instance_name e.g. ./bin/darp_milp_6 no6
-
+ to choose between normal cabs (Q=3) and ridepooling cabs (Q=6). 
+ Availabe instances are:
+ *no6 (short for data/WSW/no_116_6_req.txt); dynamic instances
+ *static benchmark instances from [Event-based MILP for DARP](https://git.uni-wuppertal.de/dgaul/event-based-milp-for-darp); These run in instance_mode=1 which transform them to a dynamic instances
+ Example call:
+ ```
+ ./bin/darp_cplex_6 no6 [-Parameters]
+```
  ### Parameters (only tested for Q=6)
-
 * -p or --probability: Probability of a delay occuring during edge fixation in the range [0..1]
 * -nd or --node-delay: delay in minutes as double value, e.g. 30 seconds is 0.5
 Example:
+```
 ./bin/darp_cplex_6 no6 -p 0.1 -nd 0.75
-
+```
 
  ## Test instances (see original repository)
 
