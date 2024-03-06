@@ -7,14 +7,19 @@ RollingHorizon<Q>::RollingHorizon(int num_requests) : DARPSolver{num_requests}
     vec_map = new std::unordered_map<NODE,int,HashFunction<Q>>[n]; 
     active_node = new std::pair<NODE,double>[2*num_requests];
     active_arc = new ARC[2*num_requests];
+    tof = new TerminalOutputFormatter<Q>();
 }
 
+
 template<int Q>
-RollingHorizon<Q>::RollingHorizon(int num_requests, double tt_delay, double bv_delay, double probability) 
+RollingHorizon<Q>::RollingHorizon(int num_requests, double delay, double probability) 
     : RollingHorizon<Q>{num_requests} {
-    this->tt_delay = tt_delay;
-    this->bv_delay = bv_delay;
-    this->probability = probability;
+    if(probability != 0 && delay != 0) {
+        this->delayIntegration = new DelayIntegration<Q>(probability, delay, tof);
+    } else {
+        delayIntegration = nullptr;
+    }
+    
 }
 
 template<int Q>

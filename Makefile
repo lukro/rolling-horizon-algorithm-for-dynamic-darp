@@ -45,7 +45,7 @@ INC_DIR= -I./inc/
 LIB_DIR = -L$(DARPH_LIB_DIR)
 DARPH_LIB = $(DARPH_LIB_DIR)/libdarph.a
 
-SRCS= ./src/DARP.cpp ./src/DARPIO.cpp ./src/DARPDebug.cpp ./src/DARPGraph.cpp ./src/DARPSolver.cpp ./src/RollingHorizon.cpp ./src/DARPCplex.cpp ./src/TerminalOutput.cpp ./src/DelayIncorporation.cpp
+SRCS= ./src/DARP.cpp ./src/DARPIO.cpp ./src/DARPDebug.cpp ./src/DARPGraph.cpp ./src/DARPSolver.cpp ./src/RollingHorizon.cpp ./src/DARPCplex.cpp ./src/TerminalOutput.cpp ./src/DelayIntegration.cpp
 
 OBJS=$(SRCS:.cpp=.o) 
 

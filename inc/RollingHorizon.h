@@ -1,23 +1,5 @@
 #include <ilcplex/ilocplex.h>
 #include <ilconcert/iloexpression.h>
-
-#define FORMAT_STOP             "\033[0m"
-#define WHITE                   "\033[37m"
-#define MANJ_GREEN              "\033[1m\033[38;2;22;160;133m"
-#define MANJ_GREEN_BG           "\033[48;2;22;160;133m"
-#define YELLOW_UNDERLINED       "\033[33m"  
-#define WHITE_YELLOW_BG         "\033[1;37m\033[43m"
-#define WHITE_MANJ_GREEN_BG     "\033[1;37m\033[48;2;22;160;133m"
-#define BLACK_YELLOW_BG         "\033[0;30m\033[43m"
-
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <map>
-
-#include <sstream>
-#include <map>
-#include "DARPH.h" // or wherever NODE and ARC are defined
-
 ILOSTLBEGIN
 
 #ifndef _ROLLING_HORIZON_H
@@ -59,10 +41,14 @@ private:
     sec dur_model;
     sec dur_solve;
 
+    friend class DelayIntegration<S>;
+    DelayIntegration<S>* delayIntegration;
+    TerminalOutputFormatter<S>* tof;
+
 public:
     // Constructor
     RollingHorizon(int);
-    RollingHorizon(int, double, double, double);
+    RollingHorizon(int, double, double);
     ~RollingHorizon();
     // no copy/ move constructor or assignment/ move operator needed so far
 
@@ -84,7 +70,6 @@ public:
     void update_graph_sets(bool consider_excess_ride_time, DARPGraph<S>& G, IloNumArray& B_val, IloNumArray& d_val, IloIntArray& p_val, IloIntArray& x_val); // only for num_milps > 1
     void get_solution_values(bool consider_excess_ride_time, DARP& D, DARPGraph<S>& G, IloCplex& cplex, IloNumArray& B_val, IloNumArray& d_val, IloIntArray& p_val, IloIntArray& x_val, IloNumVarArray& B, IloNumVarArray& x, IloNumVarArray& p, IloNumVarArray& d, IloRangeArray& fixed_B);
     void traverse_routes(DARP& D, DARPGraph<S>& G, IloNumArray& B_val, IloIntArray& x_val, IloRangeArray& B);
-    
 
     // complete routine
     std::array<double,3> solve(bool accept_all, bool consider_excess_ride_time, bool dynamic, bool heuristic, DARP& D, DARPGraph<S>& G, const std::array<double,3>& w = {1,60,0.1});
@@ -92,15 +77,5 @@ public:
     // w1 = 1 weight routing costs
     // w2 = 60 weight rejected users 
     // w3 = 0.1 weight excess ride time 
-
-    //Modified part
-    void print_node(std::string before, std::string color, NODE node, std::string after, int n);
-    std::string get_printable_header(int num_milps, double time);
-    std::string get_printable_event_block(int node, double time, int &characters_printed, int terminal_width);
-    int get_current_terminal_width();
-    std::string convertDoubleToMinutes(double time);
-
-    void incorporate_delay(std::stringstream & name, IloEnv & env, IloModel & model, IloNumVarArray & B, IloRangeArray & fixed_B);
-    void propagate_delay(NODE delayed_event, std::map<NODE, double> &node_delay);
 };
 #endif

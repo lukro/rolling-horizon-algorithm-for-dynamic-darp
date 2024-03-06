@@ -35,16 +35,6 @@ protected:
     double system_efficiency;
     double pooling_factor;
 
-    //manual delays
-    //TODO: auf ein Schema festlegen
-    double tt_delay;
-    double bv_delay;
-    double probability;
-
-    std::random_device rd;
-    std::mt19937 gen{rd()};
-    std::uniform_real_distribution<> dis{0, 1};
-
     // save requests' status
     std::vector<int> dropped_off; // requests that have been dropped off in the last iteration (since the last reveal of new requests)
     std::vector<int> picked_up; // requests that have been picked up in the last iteration 

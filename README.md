@@ -29,7 +29,6 @@ There are two binaries <br>
  ```
  ./bin/darp_cplex_6 no6 [-PARAMETERS]
 ```
-
  ### Parameters (only tested for Q=6)
 * -p or --probability: Probability of a delay occuring during edge fixation in the range [0..1]
 * -nd or --node-delay: delay in minutes as double value, e.g. 30 seconds is 0.5
