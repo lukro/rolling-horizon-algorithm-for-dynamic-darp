@@ -108,4 +108,4 @@ This repository contains a test instance of the second type in the directory dat
  ## Authors
  The main author of the code is Daniela Gaul (gaul@math.uni-wuppertal.de). It was developed at Bergische Universität Wuppertal with her PhD advisors Kathrin Klamroth and Michael Stiglmayr.
 
- The modifications were contributed by Lukas Kröger (LukasPKroeger@web.de).
+ Delay integration and terminal formatting was contributed by Lukas Kröger (LukasPKroeger@web.de).
