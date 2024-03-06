@@ -118,7 +118,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
         }
         tusnr = tusnr - (tunnr + time_passed);
     
-        std::cout << get_printable_header(num_milps, time_passed);
+        std::cout << tof->get_printable_header(num_milps, time_passed);
 #if VERBOSE 
         std::cout << std::endl << "Time passed [m]: " << time_passed << std::endl;
         sort(D.known_requests.begin(), D.known_requests.end());
@@ -283,7 +283,7 @@ std::array<double,3> RollingHorizon<Q>::solve(bool accept_all, bool consider_exc
 
                 num_milps++;
                 
-                std::cout << get_printable_header(num_milps, time_passed);
+                std::cout << tof->get_printable_header(num_milps, time_passed);
 #if VERBOSE
                 std::cout << std::endl << "Time passed [m]: " << time_passed << std::endl;
                 sort(D.known_requests.begin(), D.known_requests.end());
@@ -1985,23 +1985,24 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
     IloExpr expr(env);
 
     // fix variable B_w for new fixed edges 
-    if(probability > 0 && bv_delay > 0) 
-        incorporate_delay(name, env, model, B, fixed_B);    
+    if(delayIntegration) {
+        delayIntegration->incorporate_delay(name, env, model, B, fixed_B, fixed_edges, active_node, vmap, epsilon, n); 
+    }  
 
-    else{
-    for (const auto& a: fixed_edges)
-    {
-        if constexpr (Q==3)
-            name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << ")";
-        else
-            name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << "," << a[1][3] << "," << a[1][4] << "," << a[1][5] << ")";
-        fixed_B[vmap[a[1]]] = IloRange(env, active_node[a[1][0]-1].second - epsilon, B[vmap[a[1]]], active_node[a[1][0]-1].second + epsilon, name.str().c_str());
-        model.add(fixed_B[vmap[a[1]]]);
-        name.str("");  
-    }
+    /*else{
+        for (const auto& a: fixed_edges)
+        {
+            if constexpr (Q==3)
+                name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << ")";
+            else
+                name << "fixed_B_(" << a[1][0] << "," << a[1][1] << "," << a[1][2] << "," << a[1][3] << "," << a[1][4] << "," << a[1][5] << ")";
+            fixed_B[vmap[a[1]]] = IloRange(env, active_node[a[1][0]-1].second - epsilon, B[vmap[a[1]]], active_node[a[1][0]-1].second + epsilon, name.str().c_str());
+            model.add(fixed_B[vmap[a[1]]]);
+            name.str("");  
+        }
 
 
-    }
+    }*/
 
     // fix variable x_a for new fixed_edges
     for (const auto& a: fixed_edges)
@@ -2899,7 +2900,7 @@ void RollingHorizon<Q>::first_milp(bool accept_all, bool consider_excess_ride_ti
 template<int Q>
 void RollingHorizon<Q>::traverse_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B_val, IloIntArray& x_val, IloRangeArray& fixed_B)
 {
-    int terminal_width = get_current_terminal_width();
+    int terminal_width = tof->get_current_terminal_width();
 
     // output solution we have so far
     bool flag;
@@ -2921,7 +2922,7 @@ void RollingHorizon<Q>::traverse_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B
         flag = false;
         for (const auto& a: cycle_arcs)
         {
-            int characters_printed = 0;
+            tof->reset_event_char_counter();
             if (a[0] == G.depot)
             {
                 std::stringstream vehicle_block;
@@ -2963,7 +2964,7 @@ void RollingHorizon<Q>::traverse_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B
                                     passengers_in_vehicle--;
                             }
 
-                            vehicle_block << get_printable_event_block(f[0][0], time, characters_printed, terminal_width);
+                            vehicle_block << tof->get_printable_event_block(f[0][0], time, time_passed, n);
                             
                             if (f[1] != G.depot)
                             {
@@ -2987,7 +2988,7 @@ void RollingHorizon<Q>::traverse_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B
                     }
                 }
 
-                std::cout << MANJ_GREEN << "VEHICLE " << route_count+1 << " (CURRENT LOAD: " << passengers_in_vehicle << " / " << D.veh_capacity << ") \n" << FORMAT_STOP;
+                std::cout << MANJ_GREEN << "VEHICLE " << route_count+1 << " (CURRENT LOAD: " << passengers_in_vehicle << "/" << D.veh_capacity << ") \n" << FORMAT_STOP;
                 std::cout << vehicle_block.str() << std::endl;
 
                 D.route[route_count].end = current;
@@ -3003,6 +3004,7 @@ void RollingHorizon<Q>::traverse_routes(DARP& D, DARPGraph<Q>& G, IloNumArray& B
             }
             if (flag)
                 break;
+
         }
     }
     D.pred_array[DARPH_DEPOT] = -D.route[route_count-1].end;

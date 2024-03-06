@@ -75,13 +75,13 @@ int main(int argc,char* argv[])
     }
 
     //optional arguments
-    double travel_time_delay = 0, node_arrival_delay = 0, probability = 0;
+    double travel_time_delay = 0, delay = 0, probability = 0;
     for (int i = 2; i < argc; i++) {
         std::string arg(argv[i]);
         if ((arg == "--travel-time-delay") && i + 1 < argc) {
             travel_time_delay = std::stod(argv[++i]);
         } else if ((arg == "--node-delay" || arg == "-nd") && i + 1 < argc) {
-            node_arrival_delay = std::stod(argv[++i]);
+            delay = std::stod(argv[++i]);
         } else if ((arg == "-p") && i + 1 < argc) {
             probability = std::stod(argv[++i]);
         } else {
@@ -93,7 +93,7 @@ int main(int argc,char* argv[])
     int num_requests = DARPGetDimension(path_to_instance)/2;
     
     auto D = DARP(num_requests);
-    auto RH = RollingHorizon<6>(num_requests, travel_time_delay, node_arrival_delay, probability);  
+    auto RH = RollingHorizon<6>(num_requests, delay, probability);  
     
     // switch between different types of instances
     // 1: instances Berbeglia et al. (2012)

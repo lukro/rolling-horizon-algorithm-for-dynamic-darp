@@ -31,6 +31,10 @@
 #include <string> 
 #include <cstring> // strcpy()
 
+#include <map>
+
+
+#include "TerminalOutput.h"
 #include "DARPUtils.h"
 #include "DARPNode.h"
 #include "DARPRoute.h"
@@ -39,8 +43,8 @@
 #include "HashFunction.h"
 #include "DARPGraph.h"
 #include "DARPSolver.h"
-#include "RollingHorizon.h"
-#include "TerminalOutput.h"
 #include "DelayIntegration.h"
+#include "RollingHorizon.h"
+
 
 #endif

@@ -1,16 +1,25 @@
 #include "DARPH.h"
-#include "DelayIntegration.h"
+#include <map>
 
-using namespace TerminalOutput;
 
-void DelayIntegration::incorporate_delay(std::stringstream& name,
-                                 IloEnv& env, 
-                                 IloModel& model, 
-                                 IloNumVarArray& B, 
-                                 IloRangeArray& fixed_B, 
-                                 std::vector<ARC> fixed_edges,
-                                 std::pair<NODE,double>* active_node
-                                 int n) 
+template <int Q>
+DelayIntegration<Q>::DelayIntegration(double probability, double delay, TerminalOutputFormatter<Q>* tof) {
+    this->probability = probability;
+    this->delay = delay;
+    this->tof = tof;
+}
+
+template <int Q>
+void DelayIntegration<Q>::incorporate_delay(std::stringstream& name,
+                                IloEnv& env, 
+                                IloModel& model, 
+                                IloNumVarArray& B, 
+                                IloRangeArray& fixed_B, 
+                                std::vector<ARC> fixed_edges,
+                                std::pair<NODE,double>* active_node,
+                                std::unordered_map <NODE,uint64_t,HashFunction<Q>> vmap,
+                                const double epsilon,
+                                int n) 
 {
     std::map <NODE, double> node_delay;
 
@@ -19,7 +28,10 @@ void DelayIntegration::incorporate_delay(std::stringstream& name,
             return active_node[a[1][0]-1].second < active_node[b[1][0]-1].second;
         }
     );
-    std::cout << MANJ_GREEN << "FIXED EDGES: " << FORMAT_STOP << std::endl;
+    for(int i = 0; i < tof->get_current_terminal_width(); i++) {
+        std::cout << "-";
+    }
+    std::cout << std::endl << MANJ_GREEN << "FIXED EDGES: " << FORMAT_STOP << std::endl;
 
     // fix variable B_w for new fixed d 
     for (const auto& a: fixed_edges)
@@ -35,23 +47,22 @@ void DelayIntegration::incorporate_delay(std::stringstream& name,
         int passengerTo = to[0] - 1;
         
         if (probability == 1 || dis(gen) <= probability) {
-            print_node("", MANJ_GREEN, from, " -> ", n);
-            print_node("", MANJ_GREEN, to, " ", n);
-            std::cout << "RANDOM delay of " << convertDoubleToMinutes(bv_delay) << " min\n";
-            node_delay[to] += bv_delay;
+            std::cout << tof->get_printable_node(MANJ_GREEN, from, n) << " -> " << tof->get_printable_node(MANJ_GREEN, to, n);
+            std::cout << " RANDOM delay of " << tof->convertDoubleToMinutes(delay) << " min\n";
+            node_delay[to] += delay;
         } else {
-            print_node("", MANJ_GREEN, from, " -> ", n);
-            print_node("", MANJ_GREEN, to, " no independent delay\n", n);
+            std::cout << tof->get_printable_node(MANJ_GREEN, from, n) << " -> " << tof->get_printable_node(MANJ_GREEN, to, n);
+            std::cout << " no independent delay\n";
         }
         
         //(to oder delayed_nodes[to]) und delayed_nodes übergeben
-        propagate_delay(to, node_delay);
+        propagate_delay(to, node_delay, fixed_edges, n);
 
         double& toEventTime = active_node[passengerTo].second;
         toEventTime += node_delay[to];
         
-        print_node("\t", MANJ_GREEN, to, " TOTAL delay of ", n);
-        std::cout << convertDoubleToMinutes(node_delay[to]) << " min\n";
+        std::cout << "\t" << tof->get_printable_node(MANJ_GREEN, to, n);
+        std::cout  << " TOTAL delay of " << tof->convertDoubleToMinutes(node_delay[to]) << " min\n";
 
         fixed_B[vmap[to]] = IloRange(env,
                                     toEventTime - epsilon, 
@@ -64,9 +75,12 @@ void DelayIntegration::incorporate_delay(std::stringstream& name,
     }
 }
 
-template<int Q>
-//nur a und delayed_nodes als Parameter, 
-void RollingHorizon<Q>::propagate_delay(NODE delayed_event, std::map<NODE, double>& node_delay, std::vector<ARC> fixed_edges) {
+template <int Q>
+void DelayIntegration<Q>::propagate_delay(NODE delayed_event, 
+                        std::map<NODE, double> &node_delay, 
+                        std::vector<ARC> fixed_edges, 
+                        int n) 
+{
     for (const auto& fixed_arc: fixed_edges)
     {
         NODE start_event = fixed_arc[0];
@@ -75,14 +89,13 @@ void RollingHorizon<Q>::propagate_delay(NODE delayed_event, std::map<NODE, doubl
         if(start_event == delayed_event) {
 
             if(node_delay[delayed_event] == 0) {
-                print_node("\t", MANJ_GREEN, start_event, " propagated ZERO delay to ", n);
-                print_node("", MANJ_GREEN, dest_event, "\n", n);
+                std::cout << "\t" << tof->get_printable_node(MANJ_GREEN, start_event, n) << " propagated ZERO delay to ";
+                std::cout << tof->get_printable_node(MANJ_GREEN, dest_event, n) << std::endl;
                 return;
             }
-
-            print_node("\t", MANJ_GREEN, start_event, " propagated delay of ", n);
-            std::cout << node_delay[delayed_event] << " min to ";
-            print_node("", MANJ_GREEN, dest_event, "\n", n);
+            std::cout << "\t" << tof->get_printable_node(MANJ_GREEN, start_event, n) << " propagated delay of ";
+            std::cout << tof->convertDoubleToMinutes(node_delay[delayed_event]) << " min to ";
+            std::cout << tof->get_printable_node(MANJ_GREEN, dest_event, n) << std::endl;
 
             node_delay[dest_event] += node_delay[delayed_event];
             return;
@@ -111,5 +124,5 @@ void RollingHorizon<Q>::propagate_delay_after_fixing(std::map<NODE, double>& del
     }
 }*/
 
-template class RollingHorizon<3>;
-template class RollingHorizon<6>;
+template class DelayIntegration<3>;
+template class DelayIntegration<6>;

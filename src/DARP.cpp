@@ -99,11 +99,6 @@ void DARP::read_file(std::string infile, std::string data_directory, std::string
     int i, j;
     double val;
 
-    // experimental part
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::gamma_distribution<double> gamma(2, 0.1);
-
     std::ifstream file;
     std::string line;
     file.open(infile.c_str(), std::ios_base::in);
@@ -222,8 +217,7 @@ void DARP::read_file(std::string infile, std::string data_directory, std::string
             for (j = 0; j < num_nodes + 1; j++)
             {
                 iss >> d[i][j];
-                auto temp = gamma(gen);
-                val = 1.8246 * d[i][j] + 2.3690 + temp; // based on linear regression with data = all completed rides (Jan, Feb 21)
+                val = 1.8246 * d[i][j] + 2.3690; // based on linear regression with data = all completed rides (Jan, Feb 21)
                 // val = 2.3634 * d[i][j] + 0.2086;   // night time (März - Sep 2021, 22-3:59h)
                 tt[i][j] = roundf(val * 100) / 100;
             }
