@@ -21,14 +21,15 @@ There are two binaries <br>
  ./bin/darp_cplex_6<br>
  to choose between normal cabs (Q=3) and ridepooling cabs (Q=6). 
  
-### Instances
- Availabe instances are:
- *no6 (short for data/WSW/no_116_6_req.txt); dynamic instances
- *static benchmark instances from [Event-based MILP for DARP](https://git.uni-wuppertal.de/dgaul/event-based-milp-for-darp); These run in instance_mode=1 which transforms them to dynamic instances. <br><br>
  Example call:
  ```
- ./bin/darp_cplex_6 no6 [-PARAMETERS]
+ ./bin/darp_cplex_6 [INSTANCE] [-PARAMETERS]
 ```
+### Instances
+ Availabe instances are:
+ * no6 (short for data/WSW/no_116_6_req.txt); dynamic instances
+ * static benchmark instances from [Event-based MILP for DARP](https://git.uni-wuppertal.de/dgaul/event-based-milp-for-darp); These run in instance_mode=1 which transforms them to dynamic instances. <br><br>
+
  ### Parameters (only tested for Q=6)
 * -p or --probability: Probability of a delay occuring during edge fixation in the range [0..1]
 * -nd or --node-delay: delay in minutes as double value, e.g. 30 seconds is 0.5
