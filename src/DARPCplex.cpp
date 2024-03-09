@@ -1989,7 +1989,7 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
         delayIntegration->incorporate_delay(name, env, model, B, fixed_B, fixed_edges, active_node, vmap, epsilon, n); 
     }  
 
-    /*else{
+    else{
         for (const auto& a: fixed_edges)
         {
             if constexpr (Q==3)
@@ -2002,7 +2002,7 @@ void RollingHorizon<Q>::update_milp(bool accept_all, bool consider_excess_ride_t
         }
 
 
-    }*/
+    }
 
     // fix variable x_a for new fixed_edges
     for (const auto& a: fixed_edges)

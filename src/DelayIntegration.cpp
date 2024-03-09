@@ -29,7 +29,7 @@ void DelayIntegration<Q>::incorporate_delay(std::stringstream& name,
         }
     );
     for(int i = 0; i < tof->get_current_terminal_width(); i++) {
-        std::cout << "-";
+        std::cout << "_";
     }
     std::cout << std::endl << MANJ_GREEN << "FIXED EDGES: " << FORMAT_STOP << std::endl;
 
